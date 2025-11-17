@@ -177,11 +177,11 @@ This project is licensed under the MIT License.
 
 ## Author
 
-Created with ❤️ by [Your Name]
+Created with ❤️ by Anirmay Khan
 
 ## Support
 
-For support, email support@tastetrail.com or open an issue on GitHub.
+For support, email anirmay.05khan@gmail.com or open an issue on GitHub.
 
 ---
 
