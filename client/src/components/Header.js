@@ -45,8 +45,8 @@ const Header = () => {
             <>
               <Link to="/" className="text-gray-700 font-semibold hover:text-green-600 transition duration-300">Home</Link>
               <Link to="/recipes" className="text-gray-700 font-semibold hover:text-green-600 transition duration-300">Recipes</Link>
+              <Link to="/shopping-lists" className="text-gray-700 font-semibold hover:text-green-600 transition duration-300">Shopping</Link>
               <Link to="/meal-planner" className="text-gray-700 font-semibold hover:text-green-600 transition duration-300">Meal Planner</Link>
-              <Link to="/saved-recipes" className="text-gray-700 font-semibold hover:text-green-600 transition duration-300">Saved</Link>
               <div className="relative group">
                 <button className="flex items-center space-x-2 text-gray-700 font-semibold hover:text-green-600 transition duration-300">
                   <span className="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-bold">
@@ -90,8 +90,8 @@ const Header = () => {
               <>
                 <Link to="/" onClick={() => setIsOpen(false)} className="block text-gray-700 font-semibold hover:text-green-600 py-2 transition duration-300">Home</Link>
                 <Link to="/recipes" onClick={() => setIsOpen(false)} className="block text-gray-700 font-semibold hover:text-green-600 py-2 transition duration-300">Recipes</Link>
+                <Link to="/shopping-lists" onClick={() => setIsOpen(false)} className="block text-gray-700 font-semibold hover:text-green-600 py-2 transition duration-300">Shopping</Link>
                 <Link to="/meal-planner" onClick={() => setIsOpen(false)} className="block text-gray-700 font-semibold hover:text-green-600 py-2 transition duration-300">Meal Planner</Link>
-                <Link to="/saved-recipes" onClick={() => setIsOpen(false)} className="block text-gray-700 font-semibold hover:text-green-600 py-2 transition duration-300">Saved</Link>
                 <Link to="/profile" onClick={() => setIsOpen(false)} className="block text-gray-700 font-semibold hover:text-green-600 py-2 transition duration-300">Profile</Link>
                 <button onClick={handleLogout} className="w-full text-left text-red-600 font-semibold hover:text-red-700 py-2 transition duration-300">Logout</button>
               </>
