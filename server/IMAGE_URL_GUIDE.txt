@@ -1,0 +1,72 @@
+// ============================================
+// HOW TO INSERT IMAGE URLS FOR EACH RECIPE
+// ============================================
+
+// The image field is in: server/models/recipeModel.js
+// Line 30-34 shows the 'image' field in the schema:
+//   image: {
+//     type: String,
+//     required: true,
+//     default: '/images/default_recipe.svg',
+//   },
+
+// ============================================
+// TO UPDATE RECIPE IMAGES IN THE DATABASE:
+// ============================================
+
+// Use this file to manually set image URLs for each recipe.
+// Just replace the URLs below with your own image links.
+
+// Recipes and where to insert image URLs:
+// 1. Greek Salad
+//    Current DB field: recipe.image
+//    Insert URL here: https://[YOUR-IMAGE-URL-HERE]
+
+// 2. Classic Spaghetti Carbonara
+//    Current DB field: recipe.image
+//    Insert URL here: https://[YOUR-IMAGE-URL-HERE]
+
+// 3. Chicken Tikka Masala
+//    Current DB field: recipe.image
+//    Insert URL here: https://[YOUR-IMAGE-URL-HERE]
+
+// 4. Vegan Buddha Bowl
+//    Current DB field: recipe.image
+//    Insert URL here: https://[YOUR-IMAGE-URL-HERE]
+
+// 5. Homemade Pizza Margherita
+//    Current DB field: recipe.image
+//    Insert URL here: https://[YOUR-IMAGE-URL-HERE]
+
+// 6. Asian Stir-Fry with Tofu
+//    Current DB field: recipe.image
+//    Insert URL here: https://[YOUR-IMAGE-URL-HERE]
+
+// ============================================
+// TO MANUALLY UPDATE ONE RECIPE IN MONGODB:
+// ============================================
+
+// You can use MongoDB Compass or the MongoDB CLI:
+// 
+// db.recipes.updateOne(
+//   { name: "Greek Salad" },
+//   { $set: { image: "https://YOUR-IMAGE-URL-HERE" } }
+// )
+//
+// Then refresh your browser to see the change immediately!
+
+// ============================================
+// OR USE THIS SCRIPT TO BATCH UPDATE:
+// ============================================
+
+// Edit the recipeImages object below with your URLs,
+// then run: node updateRecipeImagesManually.js
+
+const recipeImages = {
+  'Greek Salad': 'https://[YOUR-GREEK-SALAD-IMAGE-URL]',
+  'Classic Spaghetti Carbonara': 'https://[YOUR-CARBONARA-IMAGE-URL]',
+  'Chicken Tikka Masala': 'https://[YOUR-TIKKA-IMAGE-URL]',
+  'Vegan Buddha Bowl': 'https://[YOUR-BUDDHA-BOWL-IMAGE-URL]',
+  'Homemade Pizza Margherita': 'https://[YOUR-PIZZA-IMAGE-URL]',
+  'Asian Stir-Fry with Tofu': 'https://[YOUR-STIRFRY-IMAGE-URL]',
+};

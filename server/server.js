@@ -19,8 +19,6 @@ const app = express();
 app.use(express.json());
 // Allows cross-origin requests from your React client
 app.use(cors());
-// Serve uploaded images as static files
-app.use('/uploads', express.static('uploads'));
 
 // --- API Test Route ---
 app.get('/', (req, res) => {

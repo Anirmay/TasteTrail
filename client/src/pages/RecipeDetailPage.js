@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import ImageUploadModal from '../components/ImageUploadModal';
 import { getRecipeById, addReview } from '../services/recipeService';
 
 const RecipeDetailPage = () => {
@@ -12,7 +11,6 @@ const RecipeDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [user, setUser] = useState(null);
-  const [showImageModal, setShowImageModal] = useState(false);
 
   // Review form states
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -121,7 +119,7 @@ const RecipeDetailPage = () => {
 
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           {/* Recipe Image */}
-          <div className="h-96 bg-gray-300 relative group">
+          <div className="h-96 bg-gray-300">
             <img
               src={recipe.image}
               alt={recipe.name}
@@ -131,16 +129,6 @@ const RecipeDetailPage = () => {
               }}
               className="w-full h-full object-cover"
             />
-            {user && user._id === recipe.user._id && (
-              <button
-                onClick={() => setShowImageModal(true)}
-                className="absolute inset-0 w-full h-full bg-black bg-opacity-0 group-hover:bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
-              >
-                <div className="bg-white text-gray-800 px-6 py-3 rounded-lg font-semibold">
-                  📷 Change Image
-                </div>
-              </button>
-            )}
           </div>
 
           <div className="p-8">
@@ -346,16 +334,6 @@ const RecipeDetailPage = () => {
       </div>
 
       <Footer />
-
-      {showImageModal && (
-        <ImageUploadModal
-          recipeId={id}
-          onSuccess={(newImageUrl) => {
-            setRecipe({ ...recipe, image: newImageUrl });
-          }}
-          onClose={() => setShowImageModal(false)}
-        />
-      )}
     </div>
   );
 };
