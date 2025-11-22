@@ -347,6 +347,57 @@ export const addReview = async (req, res) => {
   }
 };
 
+// @desc    Update recipe image (file upload or URL)
+// @route   PUT /api/recipes/:id/image
+// @access  Private
+export const updateRecipeImage = async (req, res) => {
+  try {
+    const recipe = await Recipe.findById(req.params.id);
+
+    if (!recipe) {
+      return res.status(404).json({
+        success: false,
+        message: 'Recipe not found',
+      });
+    }
+
+    // Check ownership
+    if (recipe.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update this recipe',
+      });
+    }
+
+    let imageUrl = recipe.image;
+
+    // If file was uploaded
+    if (req.file) {
+      // File is stored locally in uploads/recipes/
+      imageUrl = `/uploads/recipes/${req.file.filename}`;
+    } else if (req.body.imageUrl) {
+      // If image URL was provided
+      imageUrl = req.body.imageUrl;
+    }
+
+    recipe.image = imageUrl;
+    await recipe.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Recipe image updated successfully',
+      image: imageUrl,
+      recipe,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error updating recipe image',
+      error: error.message,
+    });
+  }
+};
+
 export default {
   getRecipes,
   getRecipeById,
@@ -354,4 +405,5 @@ export default {
   updateRecipe,
   deleteRecipe,
   addReview,
+  updateRecipeImage,
 };

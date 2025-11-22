@@ -17,7 +17,7 @@ router.post('/generate', verifyToken, generateShoppingList);
 
 // Temporary debug route (no auth) to help reproduce generation errors locally
 // REMOVE or protect this in production
-router.post('/generate-debug', generateShoppingList);
+// Production: only expose authenticated generate endpoint
 
 // @route   GET /api/shopping-lists
 // @access  Private

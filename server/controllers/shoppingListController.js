@@ -1,13 +1,7 @@
 import ShoppingList from '../models/shoppingListModel.js';
 import Recipe from '../models/recipeModel.js';
 import User from '../models/userModel.js';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const logFilePath = path.join(__dirname, '../error.log');
+// Debug logging removed: no file-based logs in production
 
 // Helper function to parse ingredient strings and categorize them
 const parseAndCategorizeIngredients = (ingredientString) => {
@@ -133,7 +127,7 @@ const categorizeIngredient = (ingredientName) => {
 export const generateShoppingList = async (req, res) => {
   try {
     const { name, recipeIds, notes } = req.body;
-    console.log('generateShoppingList called with:', req.body);
+    // generateShoppingList request received
 
     if (!recipeIds || recipeIds.length === 0) {
       return res.status(400).json({
@@ -194,8 +188,6 @@ export const generateShoppingList = async (req, res) => {
       ];
       
       const finalCategory = validCategories.includes(category) ? category : 'Other';
-      
-      console.log('Ingredient:', ing.name, 'Category:', category, 'FinalCategory:', finalCategory);
       return {
         name: ing.name || 'Unknown',
         quantity: Number(ing.quantity) || 1,
@@ -205,7 +197,6 @@ export const generateShoppingList = async (req, res) => {
       };
     });
 
-    console.log('Ingredients before save:', JSON.stringify(ingredients, null, 2));
 
     // Create shopping list with validated data
     // Support requests that arrive without auth (debug route): fall back to admin user if needed
@@ -233,8 +224,6 @@ export const generateShoppingList = async (req, res) => {
       notes: notes || '',
     });
 
-    console.log('Shopping list object before save:', JSON.stringify(shoppingList, null, 2));
-
     await shoppingList.save();
     await shoppingList.populate('recipes', 'name image');
 
@@ -245,18 +234,9 @@ export const generateShoppingList = async (req, res) => {
     });
   } catch (error) {
     console.error('Error in generateShoppingList:', error);
-    console.error('Request body:', req.body);
-    console.error('Error stack:', error.stack);
-    
-    // Write to file for debugging
-    const logMessage = `[${new Date().toISOString()}] Error generating shopping list\nRequest body: ${JSON.stringify(req.body)}\nError: ${error.message}\nStack: ${error.stack}\n\n`;
-    fs.appendFileSync(logFilePath, logMessage);
-    
     res.status(500).json({
       success: false,
       message: 'Error generating shopping list',
-      error: error.message,
-      stack: error.stack,
     });
   }
 };
@@ -266,12 +246,9 @@ export const generateShoppingList = async (req, res) => {
 // @access  Private
 export const getShoppingLists = async (req, res) => {
   try {
-    console.log('getShoppingLists called for user:', req.user._id);
     const shoppingLists = await ShoppingList.find({ user: req.user._id })
       .populate('recipes', 'name image')
       .sort({ createdAt: -1 });
-
-    console.log('Found shopping lists:', shoppingLists.length);
     res.status(200).json({
       success: true,
       count: shoppingLists.length,
