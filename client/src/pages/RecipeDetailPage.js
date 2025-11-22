@@ -123,6 +123,10 @@ const RecipeDetailPage = () => {
             <img
               src={recipe.image}
               alt={recipe.name}
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = '/images/default_recipe.svg';
+              }}
               className="w-full h-full object-cover"
             />
           </div>

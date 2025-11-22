@@ -255,10 +255,14 @@ const ShoppingListPage = () => {
               {shoppingList.recipes.map((recipe) => (
                 <div key={recipe._id} className="border border-gray-200 rounded-lg p-3">
                   <img
-                    src={recipe.image}
-                    alt={recipe.name}
-                    className="w-full h-24 object-cover rounded-md mb-2"
-                  />
+                        src={recipe.image}
+                        alt={recipe.name}
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = '/images/default_recipe.svg';
+                        }}
+                        className="w-full h-24 object-cover rounded-md mb-2"
+                      />
                   <h3 className="font-semibold text-sm">{recipe.name}</h3>
                 </div>
               ))}

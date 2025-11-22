@@ -33,7 +33,7 @@ const recipeSchema = new mongoose.Schema(
     image: {
       type: String,
       required: true,
-      default: '/images/default_recipe.jpg', // A default placeholder
+      default: '/images/default_recipe.svg', // A default placeholder (local)
     },
     description: {
       type: String,

@@ -153,7 +153,7 @@ export const createRecipe = async (req, res) => {
         ? [dietaryTags]
         : [],
       cuisine: cuisine || '',
-      image: image || '/images/default_recipe.jpg',
+      image: image || '/images/default_recipe.svg',
     });
 
     await recipe.save();
