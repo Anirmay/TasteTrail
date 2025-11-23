@@ -53,6 +53,11 @@ app.use('/api/recipes', recipeRoutes);
 app.use('/api/shopping-lists', shoppingListRoutes);
 app.use('/api/meal-plans', mealPlanRoutes);
 
+// Test route
+app.get('/api/test/routes', (req, res) => {
+  res.json({ mealPlanRoutesLoaded: !!mealPlanRoutes });
+});
+
 // --- Listen ---
 const PORT = process.env.PORT || 5000;
 

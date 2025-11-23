@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import mealPlanService from '../services/mealPlanService.js';
-import recipeService from '../services/recipeService.js';
-import shoppingListService from '../services/shoppingListService.js';
+import { getRecipes } from '../services/recipeService.js';
+import { generateShoppingList } from '../services/shoppingListService.js';
 
 const MealPlannerPage = () => {
   const navigate = useNavigate();
@@ -32,7 +32,7 @@ const MealPlannerPage = () => {
           setMealPlanName(mealPlanRes.mealPlan.name);
         }
 
-        const recipesRes = await recipeService.getAllRecipes();
+        const recipesRes = await getRecipes();
         setRecipes(recipesRes.recipes || []);
         setError(null);
       } catch (err) {
@@ -83,7 +83,7 @@ const MealPlannerPage = () => {
       }
 
       // Create shopping list with all recipes from the meal plan
-      const shoppingListRes = await shoppingListService.generateShoppingList(
+      const shoppingListRes = await generateShoppingList(
         `Shopping List - ${mealPlanName}`,
         result.recipeIds
       );

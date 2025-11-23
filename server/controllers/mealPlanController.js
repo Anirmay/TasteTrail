@@ -369,13 +369,4 @@ export const generateShoppingListFromMealPlan = async (req, res) => {
   }
 };
 
-export default {
-  createMealPlan,
-  getMealPlans,
-  getMealPlanById,
-  addRecipeToDay,
-  removeRecipeFromDay,
-  updateMealPlan,
-  deleteMealPlan,
-  generateShoppingListFromMealPlan,
-};
+// All functions are exported above as named exports
