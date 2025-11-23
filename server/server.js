@@ -5,6 +5,7 @@ import connectDB from './config/db.js';
 import userRoutes from './routes/userRoutes.js';
 import recipeRoutes from './routes/recipeRoutes.js';
 import shoppingListRoutes from './routes/shoppingListRoutes.js';
+import mealPlanRoutes from './routes/mealPlanRoutes.js';
 
 // Load env variables
 dotenv.config();
@@ -50,6 +51,7 @@ app.get('/', (req, res) => {
 app.use('/api/users', userRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/shopping-lists', shoppingListRoutes);
+app.use('/api/meal-plans', mealPlanRoutes);
 
 // --- Listen ---
 const PORT = process.env.PORT || 5000;

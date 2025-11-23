@@ -10,6 +10,8 @@ import RecipeDetailPage from './pages/RecipeDetailPage';
 import ShoppingListGeneratorPage from './pages/ShoppingListGeneratorPage';
 import ShoppingListPage from './pages/ShoppingListPage';
 import ShoppingListsPage from './pages/ShoppingListsPage';
+import MealPlansListPage from './pages/MealPlansListPage';
+import MealPlannerPage from './pages/MealPlannerPage';
 
 function App() {
   return (
@@ -25,6 +27,8 @@ function App() {
         <Route path="/shopping-list-generator" element={<ShoppingListGeneratorPage />} />
         <Route path="/shopping-lists" element={<ShoppingListsPage />} />
         <Route path="/shopping-list/:id" element={<ShoppingListPage />} />
+        <Route path="/meal-plans" element={<MealPlansListPage />} />
+        <Route path="/meal-planner/:id" element={<MealPlannerPage />} />
       </Routes>
     </Router>
   );
