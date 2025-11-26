@@ -11,6 +11,7 @@ const RecipeDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [user, setUser] = useState(null);
+  const [isSaved, setIsSaved] = useState(false);
 
   // Review form states
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -31,6 +32,19 @@ const RecipeDetailPage = () => {
         setLoading(true);
         const data = await getRecipeById(id);
         setRecipe(data.recipe);
+        // check saved status
+        const userRaw = localStorage.getItem('user');
+        if (userRaw) {
+          const token = JSON.parse(userRaw).token;
+          fetch('/api/users/saved', { headers: { Authorization: `Bearer ${token}` } })
+            .then(async (res) => {
+              if (!res.ok) return;
+              const d = await res.json();
+              const ids = (d.saved || []).map((r) => r._id);
+              setIsSaved(ids.includes(id));
+            })
+            .catch(() => {});
+        }
       } catch (err) {
         setError('Failed to load recipe details.');
         console.error('Error fetching recipe:', err);
@@ -135,6 +149,26 @@ const RecipeDetailPage = () => {
             {/* Recipe Header */}
             <div className="mb-8">
               <h1 className="text-4xl font-bold mb-4">{recipe.name}</h1>
+              <div className="absolute top-24 right-8">
+                <button
+                  onClick={() => {
+                    const userRaw = localStorage.getItem('user');
+                    if (!userRaw) return navigate('/login');
+
+                    const token = JSON.parse(userRaw).token;
+                    // optimistic toggle
+                    setIsSaved((s) => !s);
+
+                    fetch(`/api/users/saved/${id}`, {
+                      method: isSaved ? 'DELETE' : 'POST',
+                      headers: { Authorization: `Bearer ${token}` },
+                    }).catch(() => setIsSaved((s) => !s));
+                  }}
+                  className={`px-3 py-2 rounded ${isSaved ? 'bg-red-500 text-white' : 'bg-white border'}`}
+                >
+                  {isSaved ? '❤️ Saved' : '🤍 Save'}
+                </button>
+              </div>
               <p className="text-gray-700 text-lg mb-4">{recipe.description}</p>
 
               {/* Recipe Meta */}

@@ -9,6 +9,7 @@ const RecipesPage = () => {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [savedIds, setSavedIds] = useState(new Set());
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
@@ -39,6 +40,20 @@ const RecipesPage = () => {
 
   // Fetch recipes
   useEffect(() => {
+    // fetch user's saved recipes if logged in
+    const userRaw = localStorage.getItem('user');
+    if (userRaw) {
+      const token = JSON.parse(userRaw).token;
+      fetch('/api/users/saved', { headers: { Authorization: `Bearer ${token}` } })
+        .then(async (res) => {
+          if (!res.ok) return;
+          const data = await res.json();
+          const ids = new Set((data.saved || []).map((r) => r._id));
+          setSavedIds(ids);
+        })
+        .catch(() => {});
+    }
+
     const fetchRecipes = async () => {
       try {
         setLoading(true);
@@ -228,9 +243,9 @@ const RecipesPage = () => {
                   <Link
                     key={recipe._id}
                     to={`/recipes/${recipe._id}`}
-                    className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300"
+                    className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 relative"
                   >
-                    <div className="h-48 bg-gray-300 overflow-hidden">
+                    <div className="h-48 bg-gray-300 overflow-hidden relative">
                       <img
                         src={recipe.image}
                         alt={recipe.name}
@@ -240,6 +255,48 @@ const RecipesPage = () => {
                         }}
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                       />
+
+                      {/* Favorite button overlay */}
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          const userRaw = localStorage.getItem('user');
+                          if (!userRaw) {
+                            navigate('/login');
+                            return;
+                          }
+
+                          const token = JSON.parse(userRaw).token;
+                          const isSaved = savedIds.has(recipe._id);
+
+                          // optimistic update
+                          setSavedIds((prev) => {
+                            const next = new Set(prev);
+                            if (isSaved) next.delete(recipe._id);
+                            else next.add(recipe._id);
+                            return next;
+                          });
+
+                          // call API
+                          fetch(`/api/users/saved/${recipe._id}`, {
+                            method: isSaved ? 'DELETE' : 'POST',
+                            headers: { Authorization: `Bearer ${token}` },
+                          }).catch(() => {
+                            // rollback on error
+                            setSavedIds((prev) => {
+                              const next = new Set(prev);
+                              if (isSaved) next.add(recipe._id);
+                              else next.delete(recipe._id);
+                              return next;
+                            });
+                          });
+                        }}
+                        className={`absolute top-2 right-2 p-2 rounded-full border ${savedIds.has(recipe._id) ? 'bg-red-500 text-white border-red-500' : 'bg-white text-gray-700'}`}
+                        aria-label={savedIds.has(recipe._id) ? 'Unsave recipe' : 'Save recipe'}
+                      >
+                        {savedIds.has(recipe._id) ? '❤️' : '🤍'}
+                      </button>
                     </div>
                     <div className="p-4">
                       <h3 className="font-bold text-lg mb-2 line-clamp-2">

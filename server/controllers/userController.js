@@ -1,5 +1,6 @@
 import User from '../models/userModel.js';
 import jwt from 'jsonwebtoken';
+import Recipe from '../models/recipeModel.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'default_secret_key_change_in_production';
 
@@ -209,4 +210,182 @@ const deleteAccount = async (req, res) => {
   }
 };
 
-export { registerUser, loginUser, updateUserProfile, changePassword, deleteAccount };
+// Note: exports for core user functions are declared at the end of this file together with new collection endpoints
+
+// -------------------- Saved Recipes & Collections --------------------
+
+// @desc    Get saved recipes for current user
+// @route   GET /api/users/saved
+// @access  Private
+const getSavedRecipes = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).populate('savedRecipes');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.status(200).json({ saved: user.savedRecipes });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// @desc    Save a recipe for the current user
+// @route   POST /api/users/saved/:recipeId
+// @access  Private
+const saveRecipe = async (req, res) => {
+  const { recipeId } = req.params;
+
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // Ensure recipe exists
+    const recipe = await Recipe.findById(recipeId);
+    if (!recipe) return res.status(404).json({ message: 'Recipe not found' });
+
+    if (!user.savedRecipes.includes(recipeId)) {
+      user.savedRecipes.push(recipeId);
+      await user.save();
+    }
+
+    res.status(200).json({ message: 'Recipe saved', savedRecipes: user.savedRecipes });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// @desc    Remove a saved recipe
+// @route   DELETE /api/users/saved/:recipeId
+// @access  Private
+const removeSavedRecipe = async (req, res) => {
+  const { recipeId } = req.params;
+
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.savedRecipes = user.savedRecipes.filter((r) => r.toString() !== recipeId);
+    await user.save();
+
+    res.status(200).json({ message: 'Recipe removed', savedRecipes: user.savedRecipes });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// @desc    Create a collection
+// @route   POST /api/users/collections
+// @access  Private
+const createCollection = async (req, res) => {
+  const { name } = req.body;
+
+  try {
+    if (!name) return res.status(400).json({ message: 'Collection name is required' });
+
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.collections.push({ name, recipes: [] });
+    await user.save();
+
+    res.status(201).json({ message: 'Collection created', collections: user.collections });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// @desc    Get collections for user
+// @route   GET /api/users/collections
+// @access  Private
+const getCollections = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).populate('collections.recipes');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.status(200).json({ collections: user.collections });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// @desc    Add a recipe to a collection
+// @route   PUT /api/users/collections/:collectionId/add/:recipeId
+// @access  Private
+const addRecipeToCollection = async (req, res) => {
+  const { collectionId, recipeId } = req.params;
+
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const collection = user.collections.id(collectionId);
+    if (!collection) return res.status(404).json({ message: 'Collection not found' });
+
+    // Ensure recipe exists
+    const recipe = await Recipe.findById(recipeId);
+    if (!recipe) return res.status(404).json({ message: 'Recipe not found' });
+
+    if (!collection.recipes.map(String).includes(String(recipeId))) {
+      collection.recipes.push(recipeId);
+      await user.save();
+    }
+
+    res.status(200).json({ message: 'Added to collection', collection });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// @desc    Remove a recipe from a collection
+// @route   PUT /api/users/collections/:collectionId/remove/:recipeId
+// @access  Private
+const removeRecipeFromCollection = async (req, res) => {
+  const { collectionId, recipeId } = req.params;
+
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const collection = user.collections.id(collectionId);
+    if (!collection) return res.status(404).json({ message: 'Collection not found' });
+
+    collection.recipes = collection.recipes.filter((r) => r.toString() !== recipeId);
+    await user.save();
+
+    res.status(200).json({ message: 'Removed from collection', collection });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// @desc    Delete a collection
+// @route   DELETE /api/users/collections/:collectionId
+// @access  Private
+const deleteCollection = async (req, res) => {
+  const { collectionId } = req.params;
+
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.collections = user.collections.filter((c) => c._id.toString() !== collectionId);
+    await user.save();
+
+    res.status(200).json({ message: 'Collection deleted', collections: user.collections });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+export {
+  registerUser,
+  loginUser,
+  updateUserProfile,
+  changePassword,
+  deleteAccount,
+  getSavedRecipes,
+  saveRecipe,
+  removeSavedRecipe,
+  createCollection,
+  getCollections,
+  addRecipeToCollection,
+  removeRecipeFromCollection,
+  deleteCollection,
+};

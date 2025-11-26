@@ -81,6 +81,9 @@ const HomePage = () => {
             <a href="/register" className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-white font-bold py-4 px-12 rounded-lg shadow-lg hover:shadow-2xl hover:scale-105 transition duration-300 transform text-lg">
               Get Started for Free
             </a>
+            <a href="/recipes" className="bg-gradient-to-r from-yellow-50 to-yellow-100 hover:from-yellow-100 hover:to-yellow-200 text-green-800 font-bold py-4 px-12 rounded-lg shadow-lg hover:shadow-2xl hover:scale-105 transition duration-300 text-lg">
+              🍽️ Discover Recipes
+            </a>
             <a href="#features" className="bg-white border-2 border-green-600 text-green-700 font-bold py-4 px-12 rounded-lg shadow-lg hover:shadow-2xl hover:bg-green-50 hover:scale-105 transition duration-300 text-lg">
               Learn More
             </a>
@@ -108,24 +111,39 @@ const HomePage = () => {
           <div className="max-w-6xl mx-auto">
             <h3 className="text-5xl font-bold text-center mb-16 text-gray-900">Powerful Features</h3>
             <div className="grid md:grid-cols-3 gap-10">
-              {[
-                { icon: "🍽️", title: "Smart Recipe Discovery", desc: "Find recipes tailored to your dietary preferences, allergies, and taste profile." },
-                { icon: "🗓️", title: "Drag-Drop Meal Planner", desc: "Plan your entire week with an intuitive calendar interface." },
-                { icon: "🛒", title: "Auto Shopping List", desc: "Generate organized shopping lists from your meal plan." },
-                { icon: "❤️", title: "Save & Collect", desc: "Organize recipes into custom collections." },
-                { icon: "👥", title: "Community Sharing", desc: "Share reviews, photos, and tips with other food lovers." },
-                { icon: "📊", title: "Nutrition Insights", desc: "Track nutritional information for your meal plans." }
-              ].map((feature, idx) => (
-                <div 
-                  key={idx}
-                  className="group bg-white rounded-2xl shadow-lg p-8 hover:shadow-2xl hover:-translate-y-2 transition duration-300 cursor-pointer border border-gray-100 hover:border-green-200"
-                >
-                  <span className="text-6xl mb-4 block group-hover:scale-125 transition duration-300">{feature.icon}</span>
-                  <h4 className="font-bold text-2xl mb-3 text-gray-900">{feature.title}</h4>
-                  <p className="text-gray-600 leading-relaxed">{feature.desc}</p>
-                </div>
-              ))}
-            </div>
+                {[
+                  { icon: "🍽️", title: "Smart Recipe Discovery", desc: "Find recipes tailored to your dietary preferences, allergies, and taste profile." },
+                  { icon: "🗓️", title: "Drag-Drop Meal Planner", desc: "Plan your entire week with an intuitive calendar interface." },
+                  { icon: "🛒", title: "Auto Shopping List", desc: "Generate organized shopping lists from your meal plan." },
+                  { icon: "❤️", title: "Save & Collect", desc: "Organize recipes into custom collections." },
+                  { icon: "👥", title: "Community Sharing", desc: "Share reviews, photos, and tips with other food lovers." },
+                  { icon: "📊", title: "Nutrition Insights", desc: "Track nutritional information for your meal plans." }
+                ].map((feature, idx) => {
+                  const cardClass = "group bg-white rounded-2xl shadow-lg p-8 hover:shadow-2xl hover:-translate-y-2 transition duration-300 cursor-pointer border border-gray-100 hover:border-green-200";
+                  const content = (
+                    <>
+                      <span className="text-6xl mb-4 block group-hover:scale-125 transition duration-300">{feature.icon}</span>
+                      <h4 className="font-bold text-2xl mb-3 text-gray-900">{feature.title}</h4>
+                      <p className="text-gray-600 leading-relaxed">{feature.desc}</p>
+                    </>
+                  );
+
+                  // Make the Smart Recipe Discovery card a link to /recipes
+                  if (feature.title === 'Smart Recipe Discovery') {
+                    return (
+                      <a key={idx} href="/recipes" className={cardClass}>
+                        {content}
+                      </a>
+                    );
+                  }
+
+                  return (
+                    <div key={idx} className={cardClass}>
+                      {content}
+                    </div>
+                  );
+                })}
+              </div>
           </div>
         </section>
 

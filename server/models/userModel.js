@@ -29,6 +29,24 @@ const userSchema = mongoose.Schema(
       type: [String], // e.g., ['Italian', 'Mexican']
       default: [],
     },
+    // Saved recipes and personal collections
+    savedRecipes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Recipe',
+      },
+    ],
+    collections: [
+      {
+        name: { type: String, required: true },
+        recipes: [
+          {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Recipe',
+          },
+        ],
+      },
+    ],
   },
   {
     timestamps: true, // Automatically adds 'createdAt' and 'updatedAt'

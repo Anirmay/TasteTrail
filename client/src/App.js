@@ -12,6 +12,7 @@ import ShoppingListPage from './pages/ShoppingListPage';
 import ShoppingListsPage from './pages/ShoppingListsPage';
 import MealPlansListPage from './pages/MealPlansListPage';
 import MealPlannerPage from './pages/MealPlannerPage';
+import SavedRecipesPage from './pages/SavedRecipesPage';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
         <Route path="/shopping-list/:id" element={<ShoppingListPage />} />
         <Route path="/meal-plans" element={<MealPlansListPage />} />
         <Route path="/meal-planner/:id" element={<MealPlannerPage />} />
+        <Route path="/saved-recipes" element={<SavedRecipesPage />} />
       </Routes>
     </Router>
   );
