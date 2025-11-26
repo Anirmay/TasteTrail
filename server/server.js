@@ -6,6 +6,19 @@ import userRoutes from './routes/userRoutes.js';
 import recipeRoutes from './routes/recipeRoutes.js';
 import shoppingListRoutes from './routes/shoppingListRoutes.js';
 import mealPlanRoutes from './routes/mealPlanRoutes.js';
+import testRouter from './routes/testRouter.js';
+
+// Validate meal plan routes immediately after import
+console.log('[VALIDATION] mealPlanRoutes type:', typeof mealPlanRoutes);
+if (!mealPlanRoutes || typeof mealPlanRoutes !== 'function') {
+  console.error('[ERROR] mealPlanRoutes is not a valid router! Value:', mealPlanRoutes);
+}
+console.log('[VALIDATION] mealPlanRoutes stack:', mealPlanRoutes?.stack?.length || 0, 'routes defined');
+if (mealPlanRoutes?.stack) {
+  mealPlanRoutes.stack.forEach((layer, idx) => {
+    console.log(`  [Route ${idx}]:`, layer.route?.path || '(middleware)');
+  });
+}
 
 // Load env variables
 dotenv.config();
@@ -48,10 +61,19 @@ app.get('/', (req, res) => {
 // });
 
 // --- API Routes ---
+console.log('Registering API routes...');
 app.use('/api/users', userRoutes);
+console.log('✓ User routes registered');
 app.use('/api/recipes', recipeRoutes);
+console.log('✓ Recipe routes registered');
 app.use('/api/shopping-lists', shoppingListRoutes);
+console.log('✓ Shopping list routes registered');
+console.log('[DEBUG] About to register meal-plans, mealPlanRoutes type:', typeof mealPlanRoutes, 'value:', mealPlanRoutes);
 app.use('/api/meal-plans', mealPlanRoutes);
+console.log('✓ Meal plan routes registered');
+app.use('/api/test-router', testRouter);
+console.log('✓ Test router registered');
+console.log('[DEBUG] After meal-plans registration');
 
 // Test route
 app.get('/api/test/routes', (req, res) => {

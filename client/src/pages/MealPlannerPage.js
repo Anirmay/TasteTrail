@@ -3,6 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import mealPlanService from '../services/mealPlanService.js';
 import { getRecipes } from '../services/recipeService.js';
 import { generateShoppingList } from '../services/shoppingListService.js';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 const MealPlannerPage = () => {
   const navigate = useNavigate();
@@ -83,13 +85,14 @@ const MealPlannerPage = () => {
       }
 
       // Create shopping list with all recipes from the meal plan
+      // note: generateShoppingList expects (recipeIds, name, notes)
       const shoppingListRes = await generateShoppingList(
-        `Shopping List - ${mealPlanName}`,
-        result.recipeIds
+        result.recipeIds,
+        `Shopping List - ${mealPlanName}`
       );
 
       alert('Shopping list generated! Redirecting...');
-      navigate('/shopping');
+      navigate(`/shopping-list/${shoppingListRes.shoppingList._id}`);
     } catch (err) {
       alert(`Error generating shopping list: ${err.message}`);
     }
@@ -116,24 +119,45 @@ const MealPlannerPage = () => {
 
   if (!mealPlan) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="text-center">
-          <p className="text-lg mb-4">No meal plan selected</p>
-          <button
-            onClick={() => navigate('/meal-planner')}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            Go to Meal Planner
-          </button>
+      <div className="flex flex-col min-h-screen bg-gray-50">
+        <Header />
+
+        <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white py-8">
+          <div className="max-w-6xl mx-auto px-4">
+            <h1 className="text-4xl font-bold mb-2">Meal Planner</h1>
+            <p className="text-lg opacity-90">Plan your meals and generate shopping lists</p>
+          </div>
         </div>
+
+        <div className="flex-grow max-w-6xl w-full mx-auto px-4 py-8">
+          <div className="text-center py-12">
+            <p className="text-lg mb-4">No meal plan selected</p>
+            <button
+              onClick={() => navigate('/meal-plans')}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Go to Meal Plans
+            </button>
+          </div>
+        </div>
+
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4">
-        {/* Header */}
+    <div className="flex flex-col min-h-screen bg-gray-50">
+      <Header />
+
+      <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white py-8">
+        <div className="max-w-6xl mx-auto px-4">
+          <h1 className="text-4xl font-bold mb-2">{mealPlanName}</h1>
+          <p className="text-lg opacity-90">Plan your week and generate shopping lists</p>
+        </div>
+      </div>
+
+      <div className="flex-grow max-w-6xl w-full mx-auto px-4 py-8">
         <div className="mb-8">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-2">
@@ -275,6 +299,8 @@ const MealPlannerPage = () => {
           </div>
         )}
       </div>
+
+      <Footer />
     </div>
   );
 };

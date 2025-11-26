@@ -41,10 +41,26 @@ const ShoppingListPage = () => {
 
   const handleToggleItem = async (itemIndex) => {
     try {
-      const data = await toggleItemChecked(id, itemIndex);
-      setShoppingList(data.shoppingList);
+      // Optimistic UI: update local state immediately to avoid full-page loading
+      setShoppingList((prev) => {
+        if (!prev) return prev;
+        const cloned = { ...prev };
+        cloned.ingredients = cloned.ingredients.map((ing, idx) =>
+          idx === itemIndex ? { ...ing, checked: !ing.checked } : ing
+        );
+        return cloned;
+      });
+
+      // perform server update in background
+      await toggleItemChecked(id, itemIndex);
     } catch (err) {
-      alert('Error updating item: ' + err.message);
+      // if server fails, re-fetch to restore authoritative state and notify user
+      alert('Error updating item: ' + (err.response?.data?.message || err.message));
+      try {
+        await fetchShoppingList();
+      } catch (e) {
+        console.error('Error refetching shopping list after failed toggle:', e);
+      }
     }
   };
 

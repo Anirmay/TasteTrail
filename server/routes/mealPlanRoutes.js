@@ -13,6 +13,17 @@ import { verifyToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
+// DEBUG: Middleware to log all requests to this router
+router.use((req, res, next) => {
+  console.log('[MEAL-PLAN-ROUTER] Request:', req.method, req.path);
+  next();
+});
+
+// DEBUG: Test if router is being reached
+router.get('/test', (req, res) => {
+  res.json({ message: 'Meal plan router test route - WORKING' });
+});
+
 // @route   POST /api/meal-plans
 // @access  Private
 router.post('/', verifyToken, createMealPlan);

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import mealPlanService from '../services/mealPlanService.js';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 const MealPlansListPage = () => {
   const navigate = useNavigate();
@@ -77,11 +79,18 @@ const MealPlansListPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">My Meal Plans</h1>
+    <div className="flex flex-col min-h-screen bg-gray-50">
+      <Header />
+
+      <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white py-8">
+        <div className="max-w-6xl mx-auto px-4">
+          <h1 className="text-4xl font-bold mb-2">My Meal Plans</h1>
+          <p className="text-lg opacity-90">Create and manage weekly meal plans</p>
+        </div>
+      </div>
+
+      <div className="flex-grow max-w-6xl w-full mx-auto px-4 py-8">
+        <div className="flex justify-end items-center mb-6">
           <button
             onClick={() => setShowCreateModal(true)}
             className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
@@ -198,6 +207,8 @@ const MealPlansListPage = () => {
           </div>
         )}
       </div>
+
+      <Footer />
     </div>
   );
 };
