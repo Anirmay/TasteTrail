@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 const Header = () => {
@@ -6,6 +6,8 @@ const Header = () => {
   const [user, setUser] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [dropdownVisible, setDropdownVisible] = useState(false);
+  const hideTimeout = useRef(null);
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -18,6 +20,15 @@ const Header = () => {
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // clear any pending hide timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hideTimeout.current) {
+        clearTimeout(hideTimeout.current);
+      }
+    };
   }, []);
 
   const handleLogout = () => {
@@ -47,17 +58,40 @@ const Header = () => {
               <Link to="/recipes" className="text-gray-700 font-semibold hover:text-green-600 transition duration-300">Recipes</Link>
               <Link to="/shopping-lists" className="text-gray-700 font-semibold hover:text-green-600 transition duration-300">Shopping</Link>
               <Link to="/meal-plans" className="text-gray-700 font-semibold hover:text-green-600 transition duration-300">Meal Planner</Link>
-              <div className="relative group">
+              <div
+                className="relative"
+                onMouseEnter={() => {
+                  if (hideTimeout.current) {
+                    clearTimeout(hideTimeout.current);
+                    hideTimeout.current = null;
+                  }
+                  setDropdownVisible(true);
+                }}
+                onFocus={() => {
+                  if (hideTimeout.current) {
+                    clearTimeout(hideTimeout.current);
+                    hideTimeout.current = null;
+                  }
+                  setDropdownVisible(true);
+                }}
+                onMouseLeave={() => {
+                  // hide after 0.3 second
+                  hideTimeout.current = setTimeout(() => setDropdownVisible(false), 300);
+                }}
+                onBlur={() => {
+                  hideTimeout.current = setTimeout(() => setDropdownVisible(false), 300);
+                }}
+              >
                 <button className="flex items-center space-x-2 text-gray-700 font-semibold hover:text-green-600 transition duration-300">
                   <span className="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-bold">
                     {user.name?.charAt(0).toUpperCase()}
                   </span>
                   <span>{user.name}</span>
                 </button>
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 opacity-0 group-hover:opacity-100 invisible group-hover:visible transition duration-300 transform origin-top">
-                  <Link to="/profile" className="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-t-lg transition duration-300">Profile</Link>
-                  <Link to="/settings" className="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 transition duration-300">Settings</Link>
-                  <button onClick={handleLogout} className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 rounded-b-lg transition duration-300 font-semibold">Logout</button>
+                <div className={`absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 transition-all transform origin-top ${dropdownVisible ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-1'} `}>
+                  <Link to="/profile" onClick={() => setDropdownVisible(false)} className="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-t-lg transition duration-300">Profile</Link>
+                  <Link to="/settings" onClick={() => setDropdownVisible(false)} className="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 transition duration-300">Settings</Link>
+                  <button onClick={() => { setDropdownVisible(false); handleLogout(); }} className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 rounded-b-lg transition duration-300 font-semibold">Logout</button>
                 </div>
               </div>
             </>

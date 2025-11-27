@@ -14,6 +14,7 @@ import MealPlansListPage from './pages/MealPlansListPage';
 import MealPlannerPage from './pages/MealPlannerPage';
 import SavedRecipesPage from './pages/SavedRecipesPage';
 import CollectionsPage from './pages/CollectionsPage';
+import AdminRecipesPage from './pages/AdminRecipesPage';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
         <Route path="/meal-planner/:id" element={<MealPlannerPage />} />
         <Route path="/saved-recipes" element={<SavedRecipesPage />} />
         <Route path="/collections" element={<CollectionsPage />} />
+        <Route path="/admin/recipes" element={<AdminRecipesPage />} />
       </Routes>
     </Router>
   );

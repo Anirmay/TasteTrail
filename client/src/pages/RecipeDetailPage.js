@@ -373,47 +373,50 @@ const RecipeDetailPage = () => {
 
               {/* Add / Write a Review (only for logged in users) */}
               {user ? (
-                <div className="mb-8">
-                  <button
-                    onClick={() => setShowReviewForm(!showReviewForm)}
-                    className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600"
-                  >
-                    {showReviewForm ? 'Cancel' : 'Write a Review'}
-                  </button>
+                // Only show the Write Review button/form when the logged-in user has NOT already written a review
+                !myReview ? (
+                  <div className="mb-8">
+                    <button
+                      onClick={() => setShowReviewForm(!showReviewForm)}
+                      className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600"
+                    >
+                      {showReviewForm ? 'Cancel' : 'Write a Review'}
+                    </button>
 
-                  {showReviewForm && (
-                    <form onSubmit={handleAddReview} className="mt-4 bg-gray-100 p-6 rounded-lg">
-                      <div className="mb-4">
-                        <label className="block font-semibold mb-2">Rating</label>
-                        <select value={rating} onChange={(e) => setRating(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
-                          {[5,4,3,2,1].map((num) => (
-                            <option key={num} value={num}>{'⭐'.repeat(num)} {num} / 5</option>
-                          ))}
-                        </select>
-                      </div>
+                    {showReviewForm && (
+                      <form onSubmit={handleAddReview} className="mt-4 bg-gray-100 p-6 rounded-lg">
+                        <div className="mb-4">
+                          <label className="block font-semibold mb-2">Rating</label>
+                          <select value={rating} onChange={(e) => setRating(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                            {[5,4,3,2,1].map((num) => (
+                              <option key={num} value={num}>{'⭐'.repeat(num)} {num} / 5</option>
+                            ))}
+                          </select>
+                        </div>
 
-                      <div className="mb-4">
-                        <label className="block font-semibold mb-2">Comment</label>
-                        <textarea
-                          value={comment}
-                          onChange={(e) => setComment(e.target.value)}
-                          placeholder="Share your thoughts about this recipe..."
-                          rows="4"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                        ></textarea>
-                      </div>
+                        <div className="mb-4">
+                          <label className="block font-semibold mb-2">Comment</label>
+                          <textarea
+                            value={comment}
+                            onChange={(e) => setComment(e.target.value)}
+                            placeholder="Share your thoughts about this recipe..."
+                            rows="4"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                          ></textarea>
+                        </div>
 
-                      <div className="mb-4">
-                        <label className="block font-semibold mb-2">Photo (optional)</label>
-                        <input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files[0] || null)} className="w-full" />
-                      </div>
+                        <div className="mb-4">
+                          <label className="block font-semibold mb-2">Photo (optional)</label>
+                          <input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files[0] || null)} className="w-full" />
+                        </div>
 
-                      <button type="submit" disabled={submittingReview} className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 disabled:opacity-50">
-                        {submittingReview ? 'Submitting...' : 'Submit Review'}
-                      </button>
-                    </form>
-                  )}
-                </div>
+                        <button type="submit" disabled={submittingReview} className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 disabled:opacity-50">
+                          {submittingReview ? 'Submitting...' : 'Submit Review'}
+                        </button>
+                      </form>
+                    )}
+                  </div>
+                ) : null
               ) : (
                 <p className="text-gray-600 mb-8">
                   <button onClick={() => navigate('/login')} className="text-orange-500 font-semibold hover:underline">Login</button>{' '}to write a review
