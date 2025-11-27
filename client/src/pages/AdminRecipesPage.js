@@ -21,6 +21,8 @@ const AdminRecipesPage = () => {
   const [error, setError] = useState('');
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -47,27 +49,83 @@ const AdminRecipesPage = () => {
     setForm((f) => ({ ...f, [name]: value }));
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    } else {
+      setImageFile(null);
+      setImagePreview('');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     try {
+      const ingredientsArr = form.ingredients.split('\n').map(s => s.trim()).filter(Boolean);
+      const instructionsArr = form.instructions.split('\n').map(s => s.trim()).filter(Boolean);
+
+      // Client-side validation for required fields
+      if (!form.name || !form.description) {
+        setError('Please provide recipe name and description.');
+        setSubmitting(false);
+        return;
+      }
+      if (ingredientsArr.length === 0 || instructionsArr.length === 0) {
+        setError('Please provide at least one ingredient and one instruction (one per line).');
+        setSubmitting(false);
+        return;
+      }
+
       const payload = {
         ...form,
-        ingredients: form.ingredients.split('\n').filter(Boolean),
-        instructions: form.instructions.split('\n').filter(Boolean),
+        ingredients: ingredientsArr,
+        instructions: instructionsArr,
         dietaryTags: form.dietaryTags ? form.dietaryTags.split(',').map(s => s.trim()) : [],
       };
 
-      if (editingId) {
-        const res = await updateRecipe(editingId, payload);
-        // update list
-        setRecipes((r) => r.map(item => (item._id === editingId ? res.recipe : item)));
+      // If an image file is selected, submit as FormData so server multer can handle it
+      let res;
+      if (imageFile) {
+        const formData = new FormData();
+        formData.append('name', payload.name);
+        formData.append('description', payload.description);
+        formData.append('ingredients', payload.ingredients.join(','));
+        formData.append('instructions', payload.instructions.join(','));
+        formData.append('prepTime', payload.prepTime || '');
+        formData.append('cookTime', payload.cookTime || '');
+        formData.append('dietaryTags', payload.dietaryTags.join(','));
+        formData.append('cuisine', payload.cuisine || '');
+        formData.append('image', imageFile);
+
+        // Debug: log FormData entries
+        for (const pair of formData.entries()) {
+          console.log('[AdminRecipesPage] formData entry:', pair[0], pair[1]);
+        }
+        if (editingId) {
+          res = await updateRecipe(editingId, formData);
+          setRecipes((r) => r.map(item => (item._id === editingId ? res.recipe : item)));
+        } else {
+          res = await createRecipe(formData);
+          setRecipes((r) => [res.recipe, ...r]);
+        }
       } else {
-        const res = await createRecipe(payload);
-        setRecipes((r) => [res.recipe, ...r]);
+        console.log('[AdminRecipesPage] payload (no file):', payload);
+        if (editingId) {
+          res = await updateRecipe(editingId, payload);
+          // update list
+          setRecipes((r) => r.map(item => (item._id === editingId ? res.recipe : item)));
+        } else {
+          res = await createRecipe(payload);
+          setRecipes((r) => [res.recipe, ...r]);
+        }
       }
 
       setForm(emptyForm);
+      setImageFile(null);
+      setImagePreview('');
       setEditingId(null);
     } catch (err) {
       console.error('Error saving recipe', err);
@@ -90,6 +148,8 @@ const AdminRecipesPage = () => {
       cuisine: recipe.cuisine || '',
       image: recipe.image || '',
     });
+    setImageFile(null);
+    setImagePreview(recipe.image || '');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -167,7 +227,14 @@ const AdminRecipesPage = () => {
             </div>
             <div>
               <label className="block font-semibold">Image URL</label>
-              <input name="image" value={form.image} onChange={handleChange} className="w-full border p-2 rounded" />
+              <input name="image" value={form.image} onChange={handleChange} className="w-full border p-2 rounded mb-2" />
+              <div className="mt-2">
+                <label className="block font-semibold">Or upload image</label>
+                <input type="file" accept="image/*" onChange={handleFileChange} className="w-full" />
+                {imagePreview && (
+                  <img src={imagePreview} alt="preview" className="w-32 h-24 object-cover rounded mt-2" />
+                )}
+              </div>
             </div>
 
             <div className="flex gap-2">

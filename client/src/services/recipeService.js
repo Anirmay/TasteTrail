@@ -43,12 +43,10 @@ export const getRecipeById = async (id) => {
 export const createRecipe = async (recipeData) => {
   try {
     const token = localStorage.getItem('token');
-    const config = {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    };
+    const isForm = typeof FormData !== 'undefined' && recipeData instanceof FormData;
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    if (!isForm) headers['Content-Type'] = 'application/json';
+    const config = { headers };
 
     const response = await axios.post(API_URL, recipeData, config);
     return response.data;
@@ -62,12 +60,10 @@ export const createRecipe = async (recipeData) => {
 export const updateRecipe = async (id, recipeData) => {
   try {
     const token = localStorage.getItem('token');
-    const config = {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    };
+    const isForm = typeof FormData !== 'undefined' && recipeData instanceof FormData;
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    if (!isForm) headers['Content-Type'] = 'application/json';
+    const config = { headers };
 
     const response = await axios.put(`${API_URL}/${id}`, recipeData, config);
     return response.data;

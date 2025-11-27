@@ -116,6 +116,16 @@ export const getRecipeById = async (req, res) => {
 // @access  Private
 export const createRecipe = async (req, res) => {
   try {
+    console.log('[createRecipe] content-type:', req.headers['content-type']);
+    console.log('[createRecipe] req.body keys:', Object.keys(req.body));
+    console.log('[createRecipe] req.body sample:', {
+      name: req.body.name,
+      description: req.body.description,
+      ingredients: req.body.ingredients,
+      instructions: req.body.instructions,
+    });
+    console.log('[createRecipe] req.file:', req.file ? { filename: req.file.filename, fieldname: req.file.fieldname } : null);
+
     const {
       name,
       description,
@@ -128,11 +138,20 @@ export const createRecipe = async (req, res) => {
       image,
     } = req.body;
 
-    // Validate required fields
-    if (!name || !description || !ingredients || !instructions) {
+    // If an image file was uploaded via multer, prefer that
+    const file = req.file;
+
+    // Validate required fields with clearer messages
+    const missing = [];
+    if (!name || String(name).trim() === '') missing.push('name');
+    if (!description || String(description).trim() === '') missing.push('description');
+    if (!ingredients || String(ingredients).trim() === '') missing.push('ingredients');
+    if (!instructions || String(instructions).trim() === '') missing.push('instructions');
+    if (missing.length > 0) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide all required fields',
+        message: `Missing required fields: ${missing.join(', ')}`,
+        missing,
       });
     }
 
@@ -155,7 +174,7 @@ export const createRecipe = async (req, res) => {
         ? [dietaryTags]
         : [],
       cuisine: cuisine || '',
-      image: image || '/images/default_recipe.svg',
+      image: file ? `/uploads/recipes/${file.filename}` : (image || '/images/default_recipe.svg'),
     });
 
     await recipe.save();
@@ -227,6 +246,20 @@ export const updateRecipe = async (req, res) => {
       }
     });
 
+    // If a new image file was uploaded, remove the old one (if it's a local upload)
+    if (req.file) {
+      try {
+        if (recipe.image && recipe.image.startsWith('/uploads/recipes/')) {
+          const oldFilename = path.basename(recipe.image);
+          const oldPath = path.join(process.cwd(), 'uploads', 'recipes', oldFilename);
+          if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+        }
+      } catch (err) {
+        console.error('Error deleting old recipe image:', err.message);
+      }
+      recipe.image = `/uploads/recipes/${req.file.filename}`;
+    }
+
     await recipe.save();
 
     res.status(200).json({
@@ -266,6 +299,17 @@ export const deleteRecipe = async (req, res) => {
         success: false,
         message: 'Not authorized to delete this recipe',
       });
+    }
+
+    // Delete local image file if present
+    try {
+      if (recipe.image && recipe.image.startsWith('/uploads/recipes/')) {
+        const filename = path.basename(recipe.image);
+        const filePath = path.join(process.cwd(), 'uploads', 'recipes', filename);
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      }
+    } catch (err) {
+      console.error('Error deleting recipe image file:', err.message);
     }
 
     await Recipe.findByIdAndDelete(req.params.id);
