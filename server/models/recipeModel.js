@@ -11,6 +11,11 @@ const reviewSchema = mongoose.Schema(
       required: true,
       ref: 'User', // Links this review to a user
     },
+    // Optional photos uploaded by the user with the review
+    photos: {
+      type: [String],
+      default: [],
+    },
   },
   {
     timestamps: true,

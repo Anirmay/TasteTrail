@@ -229,7 +229,7 @@ const HomePage = () => {
             {[
               { icon: "📝", title: "Your Profile", content: `Dietary: ${user.dietaryPreferences?.join(', ') || 'Not set'}`, link: "/profile" },
               { icon: "❤️", title: "Saved Recipes", content: "Manage your favorite recipes", link: "/saved-recipes" },
-              { icon: "📊", title: "Shopping List", content: "View your organized shopping list", link: "/shopping-list" }
+              { icon: "📚", title: "Collections", content: "Manage your recipe collections", link: "/collections" }
             ].map((card, idx) => (
               <a 
                 key={idx}

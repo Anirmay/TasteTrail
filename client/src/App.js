@@ -13,6 +13,7 @@ import ShoppingListsPage from './pages/ShoppingListsPage';
 import MealPlansListPage from './pages/MealPlansListPage';
 import MealPlannerPage from './pages/MealPlannerPage';
 import SavedRecipesPage from './pages/SavedRecipesPage';
+import CollectionsPage from './pages/CollectionsPage';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
         <Route path="/meal-plans" element={<MealPlansListPage />} />
         <Route path="/meal-planner/:id" element={<MealPlannerPage />} />
         <Route path="/saved-recipes" element={<SavedRecipesPage />} />
+        <Route path="/collections" element={<CollectionsPage />} />
       </Routes>
     </Router>
   );

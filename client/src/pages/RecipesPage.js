@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getRecipes } from '../services/recipeService';
+import CollectionsModal from '../components/CollectionsModal';
 
 const RecipesPage = () => {
   const navigate = useNavigate();
@@ -10,6 +11,8 @@ const RecipesPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [savedIds, setSavedIds] = useState(new Set());
+  const [showCollections, setShowCollections] = useState(false);
+  const [selectedRecipeForCollection, setSelectedRecipeForCollection] = useState(null);
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
@@ -256,47 +259,68 @@ const RecipesPage = () => {
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                       />
 
-                      {/* Favorite button overlay */}
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          const userRaw = localStorage.getItem('user');
-                          if (!userRaw) {
-                            navigate('/login');
-                            return;
-                          }
+                      <div className="absolute top-2 right-2 flex flex-col gap-2 z-20">
+                        {/* Favorite button */}
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const userRaw = localStorage.getItem('user');
+                            if (!userRaw) {
+                              navigate('/login');
+                              return;
+                            }
 
-                          const token = JSON.parse(userRaw).token;
-                          const isSaved = savedIds.has(recipe._id);
+                            const token = JSON.parse(userRaw).token;
+                            const isSaved = savedIds.has(recipe._id);
 
-                          // optimistic update
-                          setSavedIds((prev) => {
-                            const next = new Set(prev);
-                            if (isSaved) next.delete(recipe._id);
-                            else next.add(recipe._id);
-                            return next;
-                          });
-
-                          // call API
-                          fetch(`/api/users/saved/${recipe._id}`, {
-                            method: isSaved ? 'DELETE' : 'POST',
-                            headers: { Authorization: `Bearer ${token}` },
-                          }).catch(() => {
-                            // rollback on error
+                            // optimistic update
                             setSavedIds((prev) => {
                               const next = new Set(prev);
-                              if (isSaved) next.add(recipe._id);
-                              else next.delete(recipe._id);
+                              if (isSaved) next.delete(recipe._id);
+                              else next.add(recipe._id);
                               return next;
                             });
-                          });
-                        }}
-                        className={`absolute top-2 right-2 p-2 rounded-full border ${savedIds.has(recipe._id) ? 'bg-red-500 text-white border-red-500' : 'bg-white text-gray-700'}`}
-                        aria-label={savedIds.has(recipe._id) ? 'Unsave recipe' : 'Save recipe'}
-                      >
-                        {savedIds.has(recipe._id) ? '❤️' : '🤍'}
-                      </button>
+
+                            // call API
+                            fetch(`/api/users/saved/${recipe._id}`, {
+                              method: isSaved ? 'DELETE' : 'POST',
+                              headers: { Authorization: `Bearer ${token}` },
+                            }).catch(() => {
+                              // rollback on error
+                              setSavedIds((prev) => {
+                                const next = new Set(prev);
+                                if (isSaved) next.add(recipe._id);
+                                else next.delete(recipe._id);
+                                return next;
+                              });
+                            });
+                          }}
+                          className={`p-2 rounded-full border shadow ${savedIds.has(recipe._id) ? 'bg-red-500 text-white border-red-500' : 'bg-white text-gray-700'}`}
+                          aria-label={savedIds.has(recipe._id) ? 'Unsave recipe' : 'Save recipe'}
+                        >
+                          {savedIds.has(recipe._id) ? '❤️' : '🤍'}
+                        </button>
+
+                        {/* Collections button */}
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const userRaw = localStorage.getItem('user');
+                            if (!userRaw) {
+                              navigate('/login');
+                              return;
+                            }
+                            setSelectedRecipeForCollection(recipe._id);
+                            setShowCollections(true);
+                          }}
+                          className="p-2 rounded-full bg-white border text-gray-700 shadow"
+                          aria-label="Add to collection"
+                        >
+                          📁
+                        </button>
+                      </div>
                     </div>
                     <div className="p-4">
                       <h3 className="font-bold text-lg mb-2 line-clamp-2">
@@ -345,6 +369,7 @@ const RecipesPage = () => {
       </div>
 
       <Footer />
+      <CollectionsModal isOpen={showCollections} onClose={() => setShowCollections(false)} recipeId={selectedRecipeForCollection} />
     </div>
   );
 };

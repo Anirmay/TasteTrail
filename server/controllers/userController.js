@@ -374,6 +374,40 @@ const deleteCollection = async (req, res) => {
   }
 };
 
+// @desc    Rename a collection
+// @route   PUT /api/users/collections/:collectionId
+// @access  Private
+const renameCollection = async (req, res) => {
+  const { collectionId } = req.params;
+  const { name } = req.body;
+
+  console.log('[renameCollection] incoming request', {
+    userId: req.userId,
+    collectionId,
+    body: req.body,
+    method: req.method,
+    url: req.originalUrl,
+  });
+
+  try {
+    if (!name) return res.status(400).json({ message: 'New collection name is required' });
+
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const collection = user.collections.id(collectionId);
+    if (!collection) return res.status(404).json({ message: 'Collection not found' });
+
+    collection.name = name;
+    await user.save();
+
+    // Return updated collection and full list for convenience
+    res.status(200).json({ message: 'Collection renamed', collection, collections: user.collections });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
 export {
   registerUser,
   loginUser,
@@ -388,4 +422,5 @@ export {
   addRecipeToCollection,
   removeRecipeFromCollection,
   deleteCollection,
+  renameCollection,
 };

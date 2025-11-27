@@ -1,4 +1,6 @@
 import Recipe from '../models/recipeModel.js';
+import fs from 'fs';
+import path from 'path';
 
 // @desc    Get all recipes with optional filtering
 // @route   GET /api/recipes
@@ -288,6 +290,9 @@ export const addReview = async (req, res) => {
   try {
     const { rating, comment } = req.body;
 
+    // If multipart/form-data was used, multer will have populated req.files
+    const files = req.files || (req.file ? [req.file] : []);
+
     if (!rating || !comment) {
       return res.status(400).json({
         success: false,
@@ -321,7 +326,12 @@ export const addReview = async (req, res) => {
       rating: Number(rating),
       comment,
       user: req.user._id,
+      photos: [],
     };
+
+    if (files && files.length > 0) {
+      review.photos = files.slice(0, 5).map(f => `/uploads/reviews/${f.filename}`);
+    }
 
     recipe.reviews.push(review);
 
@@ -347,6 +357,134 @@ export const addReview = async (req, res) => {
   }
 };
 
+// @desc    Edit a review (only owner or admin)
+// @route   PUT /api/recipes/:id/reviews/:reviewId
+// @access  Private
+export const editReview = async (req, res) => {
+  try {
+    const { rating, comment, removePhoto } = req.body;
+    const file = req.file;
+
+    const recipe = await Recipe.findById(req.params.id);
+
+    if (!recipe) {
+      return res.status(404).json({ success: false, message: 'Recipe not found' });
+    }
+
+    const review = recipe.reviews.id(req.params.reviewId);
+    if (!review) {
+      return res.status(404).json({ success: false, message: 'Review not found' });
+    }
+
+    // Only review owner or admin can edit
+    if (review.user.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Not authorized to edit this review' });
+    }
+
+    // Update fields if provided
+    if (rating !== undefined) review.rating = Number(rating);
+    if (comment !== undefined) review.comment = comment;
+
+    // Handle photo removal (removePhoto can be an array of URLs to remove)
+    if (removePhoto) {
+      let removeList = [];
+      if (Array.isArray(removePhoto)) {
+        removeList = removePhoto;
+      } else if (typeof removePhoto === 'string') {
+        try {
+          removeList = JSON.parse(removePhoto);
+        } catch {
+          removeList = [removePhoto];
+        }
+      }
+      if (review.photos && review.photos.length > 0) {
+        removeList.forEach((url) => {
+          const idx = review.photos.indexOf(url);
+          if (idx !== -1) {
+            const filename = path.basename(url);
+            const filePath = path.join(process.cwd(), 'uploads', 'reviews', filename);
+            try {
+              if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+            } catch (err) {
+              console.error('Error deleting review photo:', err.message);
+            }
+            review.photos.splice(idx, 1);
+          }
+        });
+      }
+    }
+
+    // Handle new photo uploads (multiple)
+    const files = req.files || (req.file ? [req.file] : []);
+    if (files && files.length > 0) {
+      // Limit to 5 total photos
+      const currentPhotos = review.photos || [];
+      const newPhotos = files.map(f => `/uploads/reviews/${f.filename}`);
+      review.photos = [...currentPhotos, ...newPhotos].slice(0, 5);
+    }
+
+    // Recalculate aggregate rating
+    recipe.rating =
+      recipe.reviews.reduce((acc, item) => item.rating + acc, 0) /
+      recipe.reviews.length;
+
+    await recipe.save();
+
+    res.status(200).json({ success: true, message: 'Review updated', recipe, review });
+  } catch (error) {
+    console.error('[editReview] ERROR:', error);
+    res.status(500).json({ success: false, message: 'Error editing review', error: error.message });
+  }
+};
+
+// @desc    Delete a review (only owner or admin)
+// @route   DELETE /api/recipes/:id/reviews/:reviewId
+// @access  Private
+export const deleteReview = async (req, res) => {
+  console.log('[deleteReview] recipeId:', req.params.id, 'reviewId:', req.params.reviewId);
+  try {
+    const recipe = await Recipe.findById(req.params.id);
+    if (recipe) {
+      console.log('[deleteReview] recipe.reviews:', recipe.reviews.map(r => ({ _id: r._id, user: r.user, name: r.name })));
+      const review = recipe.reviews.id(req.params.reviewId);
+      console.log('[deleteReview] found review:', !!review, review ? review._id : null);
+      if (!review) {
+        return res.status(404).json({ success: false, message: 'Review not found' });
+      }
+      // Only owner or admin can delete
+      if (review.user.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+        return res.status(403).json({ success: false, message: 'Not authorized to delete this review' });
+      }
+      // Delete photo file if exists
+      if (review.photo) {
+        const filename = path.basename(review.photo);
+        const filePath = path.join(process.cwd(), 'uploads', 'reviews', filename);
+        try {
+          if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        } catch (err) {
+          console.error('Error deleting review photo during delete:', err.message);
+        }
+      }
+      // Remove review using pull
+      recipe.reviews.pull(review._id);
+      // Recalculate rating and counts
+      if (recipe.reviews.length > 0) {
+        recipe.rating = recipe.reviews.reduce((acc, item) => item.rating + acc, 0) / recipe.reviews.length;
+      } else {
+        recipe.rating = 0;
+      }
+      recipe.numReviews = recipe.reviews.length;
+      await recipe.save();
+      res.status(200).json({ success: true, message: 'Review deleted', recipe });
+    } else {
+      return res.status(404).json({ success: false, message: 'Recipe not found' });
+    }
+  } catch (error) {
+    console.error('[deleteReview] ERROR:', error);
+    res.status(500).json({ success: false, message: 'Error deleting review', error: error.message });
+  }
+};
+
 export default {
   getRecipes,
   getRecipeById,
@@ -354,4 +492,6 @@ export default {
   updateRecipe,
   deleteRecipe,
   addReview,
+  editReview,
+  deleteReview,
 };

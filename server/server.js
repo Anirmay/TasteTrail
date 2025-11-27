@@ -7,6 +7,8 @@ import recipeRoutes from './routes/recipeRoutes.js';
 import shoppingListRoutes from './routes/shoppingListRoutes.js';
 import mealPlanRoutes from './routes/mealPlanRoutes.js';
 import testRouter from './routes/testRouter.js';
+import fs from 'fs';
+import path from 'path';
 
 // Validate meal plan routes immediately after import
 console.log('[VALIDATION] mealPlanRoutes type:', typeof mealPlanRoutes);
@@ -33,6 +35,17 @@ const app = express();
 app.use(express.json());
 // Allows cross-origin requests from your React client
 app.use(cors());
+
+// Ensure uploads directory exists and serve it
+try {
+  const uploadsDir = path.join(process.cwd(), 'uploads');
+  const reviewsDir = path.join(uploadsDir, 'reviews');
+  if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+  if (!fs.existsSync(reviewsDir)) fs.mkdirSync(reviewsDir, { recursive: true });
+} catch (e) {
+  console.error('Failed to ensure uploads directory exists', e.message);
+}
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // --- API Test Route ---
 app.get('/', (req, res) => {

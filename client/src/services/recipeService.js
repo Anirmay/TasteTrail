@@ -98,22 +98,69 @@ export const deleteRecipe = async (id) => {
 // Add a review to a recipe
 export const addReview = async (id, reviewData) => {
   try {
-    const token = localStorage.getItem('token');
-    const config = {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    };
+    // Token may be stored as JSON user object or simple token depending on code paths
+    const stored = localStorage.getItem('user') || localStorage.getItem('token');
+    let token = null;
+    try {
+      token = stored ? JSON.parse(stored).token : null;
+    } catch (e) {
+      token = stored;
+    }
 
-    const response = await axios.post(
-      `${API_URL}/${id}/reviews`,
-      reviewData,
-      config
-    );
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+    // If reviewData is FormData (contains photo), let axios set Content-Type automatically
+    const isForm = typeof FormData !== 'undefined' && reviewData instanceof FormData;
+    const config = { headers: { ...headers } };
+
+    const response = await axios.post(`${API_URL}/${id}/reviews`, reviewData, config);
     return response.data;
   } catch (error) {
     console.error('Error adding review:', error);
+    throw error;
+  }
+};
+
+// Edit an existing review (supports FormData with photo)
+export const editReview = async (recipeId, reviewId, reviewData) => {
+  try {
+    const stored = localStorage.getItem('user') || localStorage.getItem('token');
+    let token = null;
+    try {
+      token = stored ? JSON.parse(stored).token : null;
+    } catch (e) {
+      token = stored;
+    }
+
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const config = { headers: { ...headers } };
+
+    const response = await axios.put(`${API_URL}/${recipeId}/reviews/${reviewId}`, reviewData, config);
+    return response.data;
+  } catch (error) {
+    console.error('Error editing review:', error);
+    throw error;
+  }
+};
+
+// Delete a review
+export const deleteReview = async (recipeId, reviewId) => {
+  try {
+    const stored = localStorage.getItem('user') || localStorage.getItem('token');
+    let token = null;
+    try {
+      token = stored ? JSON.parse(stored).token : null;
+    } catch (e) {
+      token = stored;
+    }
+
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const config = { headers: { ...headers } };
+
+    const response = await axios.delete(`${API_URL}/${recipeId}/reviews/${reviewId}`, config);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting review:', error);
     throw error;
   }
 };
