@@ -29,6 +29,12 @@ const userSchema = mongoose.Schema(
       type: [String], // e.g., ['Italian', 'Mexican']
       default: [],
     },
+    // Role for permissions (user/admin)
+    role: {
+      type: String,
+      enum: ['user', 'admin'],
+      default: 'user',
+    },
     // Saved recipes and personal collections
     savedRecipes: [
       {
