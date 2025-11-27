@@ -58,6 +58,9 @@ const Header = () => {
               <Link to="/recipes" className="text-gray-700 font-semibold hover:text-green-600 transition duration-300">Recipes</Link>
               <Link to="/shopping-lists" className="text-gray-700 font-semibold hover:text-green-600 transition duration-300">Shopping</Link>
               <Link to="/meal-plans" className="text-gray-700 font-semibold hover:text-green-600 transition duration-300">Meal Planner</Link>
+              {user.role === 'admin' && (
+                <Link to="/admin/recipes" className="text-gray-700 font-semibold hover:text-green-600 transition duration-300">Admin</Link>
+              )}
               <div
                 className="relative"
                 onMouseEnter={() => {

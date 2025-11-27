@@ -15,6 +15,7 @@ import MealPlannerPage from './pages/MealPlannerPage';
 import SavedRecipesPage from './pages/SavedRecipesPage';
 import CollectionsPage from './pages/CollectionsPage';
 import AdminRecipesPage from './pages/AdminRecipesPage';
+import RequireAdmin from './components/RequireAdmin';
 
 function App() {
   return (
@@ -34,7 +35,7 @@ function App() {
         <Route path="/meal-planner/:id" element={<MealPlannerPage />} />
         <Route path="/saved-recipes" element={<SavedRecipesPage />} />
         <Route path="/collections" element={<CollectionsPage />} />
-        <Route path="/admin/recipes" element={<AdminRecipesPage />} />
+        <Route path="/admin/recipes" element={<RequireAdmin><AdminRecipesPage /></RequireAdmin>} />
       </Routes>
     </Router>
   );
