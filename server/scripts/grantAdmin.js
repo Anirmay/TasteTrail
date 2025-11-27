@@ -1,8 +1,13 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import User from '../models/userModel.js';
 
-dotenv.config();
+// Load .env from the server directory reliably even when script is run from project root
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/tastetrail';
 
