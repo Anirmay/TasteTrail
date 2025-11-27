@@ -22,6 +22,8 @@ const AdminRecipesPage = () => {
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   useEffect(() => {
     fetchRecipes();
@@ -91,15 +93,30 @@ const AdminRecipesPage = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Delete this recipe?')) return;
+  const handleDelete = (id, name) => {
+    // open modal
+    setDeleteTarget({ id, name });
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      await deleteRecipe(id);
-      setRecipes((r) => r.filter(x => x._id !== id));
+      await deleteRecipe(deleteTarget.id);
+      setRecipes((r) => r.filter(x => x._id !== deleteTarget.id));
+      setShowDeleteModal(false);
+      setDeleteTarget(null);
     } catch (err) {
       console.error('Error deleting', err);
       setError(err.response?.data?.message || err.message || 'Delete failed');
+      setShowDeleteModal(false);
+      setDeleteTarget(null);
     }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setDeleteTarget(null);
   };
 
   return (
@@ -160,6 +177,20 @@ const AdminRecipesPage = () => {
           </form>
         </section>
 
+        {/* Delete confirmation modal */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+              <h3 className="text-lg font-semibold mb-2">Confirm delete</h3>
+              <p className="text-gray-700 mb-4">Are you sure you want to delete the recipe "{deleteTarget?.name}"? This action cannot be undone.</p>
+              <div className="flex justify-end gap-3">
+                <button onClick={cancelDelete} className="px-4 py-2 border rounded">Cancel</button>
+                <button onClick={confirmDelete} className="px-4 py-2 bg-red-600 text-white rounded">Delete</button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <section>
           <h2 className="text-xl font-semibold mb-4">All Recipes</h2>
           {loading ? (
@@ -174,7 +205,7 @@ const AdminRecipesPage = () => {
                     <p className="text-sm text-gray-600">{r.cuisine} • {r.dietaryTags ? r.dietaryTags.join(', ') : ''}</p>
                     <div className="mt-2 flex gap-2">
                       <button onClick={() => startEdit(r)} className="px-3 py-1 bg-white border rounded">Edit</button>
-                      <button onClick={() => handleDelete(r._id)} className="px-3 py-1 bg-red-500 text-white rounded">Delete</button>
+                      <button onClick={() => handleDelete(r._id, r.name)} className="px-3 py-1 bg-red-500 text-white rounded">Delete</button>
                     </div>
                   </div>
                 </div>
