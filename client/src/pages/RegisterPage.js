@@ -1,18 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import userService from '../services/userService';
+import dietaryOptions from '../constants/dietaryOptions';
 const RegisterPage = () => {
   const navigate = useNavigate();
-  const dietaryOptions = [
-    'None',
-    'Vegetarian',
-    'Vegan',
-    'Gluten-Free',
-    'Keto',
-    'Paleo',
-    'Halal',
-    'Kosher',
-  ];
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -35,21 +26,11 @@ const RegisterPage = () => {
         email,
         password,
         dietaryPreferences: [dietary],
-        allergies: [],
-        favoriteCuisines: [],
       };
       const data = await userService.register(userData);
-      
-      // Store user and token in localStorage
-      localStorage.setItem('user', JSON.stringify({
-        _id: data._id,
-        name: data.name,
-        email: data.email,
-        dietary: data.dietaryPreferences?.[0] || 'None',
-        allergies: data.allergies || [],
-        favoriteCuisines: data.favoriteCuisines || [],
-        token: data.token
-      }));
+
+      // Store the full returned user object consistently (same shape as login)
+      localStorage.setItem('user', JSON.stringify(data));
       localStorage.setItem('token', data.token);
       
       setLoading(false);
@@ -144,6 +125,7 @@ const RegisterPage = () => {
               ))}
             </select>
           </div>
+
           <button
             type="submit"
             className="w-full bg-green-600 text-white font-bold py-3 rounded-lg shadow-lg hover:bg-green-700 transition"

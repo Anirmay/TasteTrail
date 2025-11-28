@@ -5,22 +5,34 @@ const API_URL = 'http://localhost:5000/api/recipes';
 // Get all recipes with filtering
 export const getRecipes = async (filters = {}) => {
   try {
-    const params = new URLSearchParams();
+    // Build params using axios so we can also pass headers (token) easily
+    const params = {};
+    if (filters.search) params.search = filters.search;
+    if (filters.ingredient) params.ingredient = filters.ingredient;
+    if (filters.dietaryTags) params.dietaryTags = Array.isArray(filters.dietaryTags) ? JSON.stringify(filters.dietaryTags) : filters.dietaryTags;
+    if (filters.cuisine) params.cuisine = filters.cuisine;
+    if (filters.maxPrepTime) params.maxPrepTime = filters.maxPrepTime;
+    if (filters.minRating) params.minRating = filters.minRating;
+    if (filters.sortBy) params.sortBy = filters.sortBy;
 
-    if (filters.search) params.append('search', filters.search);
-    if (filters.dietaryTags) {
-      if (Array.isArray(filters.dietaryTags)) {
-        filters.dietaryTags.forEach((tag) => params.append('dietaryTags', tag));
-      } else {
-        params.append('dietaryTags', filters.dietaryTags);
-      }
+    // applyPreferences: boolean -> only include when explicitly false to opt-out,
+    // otherwise server will default to applying preferences if a token is present.
+    if (filters.applyPreferences === false) params.applyPreferences = 'false';
+    else if (filters.applyPreferences === true) params.applyPreferences = 'true';
+
+    // Attach Authorization header if we have a stored user/token
+    const stored = localStorage.getItem('user') || localStorage.getItem('token');
+    let token = null;
+    try {
+      token = stored ? JSON.parse(stored).token : null;
+    } catch (e) {
+      token = stored;
     }
-    if (filters.cuisine) params.append('cuisine', filters.cuisine);
-    if (filters.maxPrepTime) params.append('maxPrepTime', filters.maxPrepTime);
-    if (filters.minRating) params.append('minRating', filters.minRating);
-    if (filters.sortBy) params.append('sortBy', filters.sortBy);
 
-    const response = await axios.get(`${API_URL}?${params.toString()}`);
+    const config = { params };
+    if (token) config.headers = { Authorization: `Bearer ${token}` };
+
+    const response = await axios.get(API_URL, config);
     return response.data;
   } catch (error) {
     console.error('Error fetching recipes:', error);

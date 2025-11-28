@@ -35,6 +35,11 @@ const userSchema = mongoose.Schema(
       enum: ['user', 'admin'],
       default: 'user',
     },
+    // Whether the account is disabled (admin action)
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
     // Saved recipes and personal collections
     savedRecipes: [
       {

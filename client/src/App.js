@@ -15,6 +15,7 @@ import MealPlannerPage from './pages/MealPlannerPage';
 import SavedRecipesPage from './pages/SavedRecipesPage';
 import CollectionsPage from './pages/CollectionsPage';
 import AdminRecipesPage from './pages/AdminRecipesPage';
+import AdminUsersPage from './pages/AdminUsersPage';
 import RequireAdmin from './components/RequireAdmin';
 
 function App() {
@@ -36,6 +37,7 @@ function App() {
         <Route path="/saved-recipes" element={<SavedRecipesPage />} />
         <Route path="/collections" element={<CollectionsPage />} />
         <Route path="/admin/recipes" element={<RequireAdmin><AdminRecipesPage /></RequireAdmin>} />
+        <Route path="/admin/users" element={<RequireAdmin><AdminUsersPage /></RequireAdmin>} />
       </Routes>
     </Router>
   );

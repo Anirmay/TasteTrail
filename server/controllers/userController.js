@@ -131,16 +131,16 @@ const updateUserProfile = async (req, res) => {
     // Save updated user
     const updatedUser = await user.save();
 
-    // Send response with updated user (without password)
+    // Send response with updated user (without password) using structured arrays
     res.status(200).json({
       message: 'Profile updated successfully',
       user: {
         _id: updatedUser._id,
         name: updatedUser.name,
         email: updatedUser.email,
-        dietary: updatedUser.dietaryPreferences[0] || 'None',
-        allergies: updatedUser.allergies.join(', '),
-        favoriteCuisines: updatedUser.favoriteCuisines.join(', '),
+        dietaryPreferences: updatedUser.dietaryPreferences || [],
+        allergies: updatedUser.allergies || [],
+        favoriteCuisines: updatedUser.favoriteCuisines || [],
       }
     });
   } catch (error) {
@@ -410,12 +410,135 @@ const renameCollection = async (req, res) => {
   }
 };
 
+// Exports are defined at the end of the file
+
+// @desc    Get profile for current user
+// @route   GET /api/users/profile
+// @access  Private
+const getUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select('-password');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.status(200).json({ user });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+// -------------------- Admin: User Management --------------------
+
+// @desc    Get list of users (admin only)
+// @route   GET /api/users
+// @access  Private (admin)
+const getUsers = async (req, res) => {
+  try {
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Admin access required' });
+    }
+
+    const { page = 1, limit = 50, search = '', role } = req.query;
+    const query = {};
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+      ];
+    }
+    if (role) query.role = role;
+
+    const skip = (Number(page) - 1) * Number(limit);
+    const [users, total] = await Promise.all([
+      User.find(query).skip(skip).limit(Number(limit)).lean(),
+      User.countDocuments(query),
+    ]);
+
+    res.status(200).json({ users, total, page: Number(page), limit: Number(limit) });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// @desc    Update a user's role (admin only)
+// @route   PUT /api/users/:id/role
+// @access  Private (admin)
+const updateUserRole = async (req, res) => {
+  try {
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Admin access required' });
+    }
+    const { id } = req.params;
+    const { role } = req.body;
+    if (!['user', 'admin'].includes(role)) return res.status(400).json({ message: 'Invalid role' });
+
+    // Prevent demoting oneself via API accidentally
+    if (req.user._id.toString() === id && role !== 'admin') {
+      return res.status(400).json({ message: 'Cannot remove your own admin role' });
+    }
+
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.role = role;
+    await user.save();
+
+    res.status(200).json({ message: 'Role updated', user: { _id: user._id, email: user.email, role: user.role } });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// @desc    Disable or enable a user account (admin only)
+// @route   PUT /api/users/:id/disable
+// @access  Private (admin)
+const toggleUserDisabled = async (req, res) => {
+  try {
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Admin access required' });
+    }
+    const { id } = req.params;
+    const { disabled } = req.body; // boolean
+
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.disabled = !!disabled;
+    await user.save();
+
+    res.status(200).json({ message: 'User status updated', user: { _id: user._id, email: user.email, disabled: user.disabled } });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// @desc    Delete a user (admin only)
+// @route   DELETE /api/users/:id
+// @access  Private (admin)
+const deleteUserByAdmin = async (req, res) => {
+  try {
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Admin access required' });
+    }
+    const { id } = req.params;
+    if (req.user._id.toString() === id) {
+      return res.status(400).json({ message: 'Cannot delete your own account' });
+    }
+
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    await User.findByIdAndDelete(id);
+    res.status(200).json({ message: 'User deleted' });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
 export {
   registerUser,
   loginUser,
   updateUserProfile,
   changePassword,
   deleteAccount,
+  getUserProfile,
   getSavedRecipes,
   saveRecipe,
   removeSavedRecipe,
@@ -425,4 +548,9 @@ export {
   removeRecipeFromCollection,
   deleteCollection,
   renameCollection,
+  // Admin actions
+  getUsers,
+  updateUserRole,
+  toggleUserDisabled,
+  deleteUserByAdmin,
 };

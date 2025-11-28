@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -7,7 +7,9 @@ const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [adminDropdownVisible, setAdminDropdownVisible] = useState(false);
   const hideTimeout = useRef(null);
+  const adminHideTimeout = useRef(null);
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -41,6 +43,14 @@ const Header = () => {
     navigate('/');
   };
 
+  const location = useLocation();
+  const isActive = (path, exact = false) => {
+    // Special-case root path: only active when exactly '/'
+    if (path === '/') return location.pathname === '/';
+    if (exact) return location.pathname === path;
+    return location.pathname === path || location.pathname.startsWith(path + '/') || location.pathname.startsWith(path);
+  };
+
   return (
     <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${scrolled ? 'py-3 bg-white/95 backdrop-blur-md shadow-lg' : 'py-4 bg-white/90 backdrop-blur-md shadow-md'}`}>
       <div className="max-w-7xl mx-auto px-4 md:px-6 flex justify-between items-center">
@@ -54,12 +64,49 @@ const Header = () => {
         <nav className="hidden md:flex items-center space-x-8">
           {user ? (
             <>
-              <Link to="/" className="text-gray-700 font-semibold hover:text-green-600 transition duration-300">Home</Link>
-              <Link to="/recipes" className="text-gray-700 font-semibold hover:text-green-600 transition duration-300">Recipes</Link>
-              <Link to="/shopping-lists" className="text-gray-700 font-semibold hover:text-green-600 transition duration-300">Shopping</Link>
-              <Link to="/meal-plans" className="text-gray-700 font-semibold hover:text-green-600 transition duration-300">Meal Planner</Link>
+              <Link to="/" className={`relative inline-block ${isActive('/') ? 'text-green-700 font-semibold bg-green-50 ring-1 ring-green-100 px-3 py-1 rounded' : 'text-gray-700 font-semibold hover:text-green-600'} transition duration-300`}>
+                <span>Home</span>
+                <span className={`block h-0.5 bg-green-700 rounded mt-1 transition-all duration-300 ${isActive('/') ? 'w-full' : 'w-0'}`}></span>
+              </Link>
+              <Link to="/recipes" className={`relative inline-block ${isActive('/recipes') ? 'text-green-700 font-semibold bg-green-50 ring-1 ring-green-100 px-3 py-1 rounded' : 'text-gray-700 font-semibold hover:text-green-600'} transition duration-300`}>
+                <span>Recipes</span>
+                <span className={`block h-0.5 bg-green-700 rounded mt-1 transition-all duration-300 ${isActive('/recipes') ? 'w-full' : 'w-0'}`}></span>
+              </Link>
+              <Link to="/shopping-lists" className={`relative inline-block ${isActive('/shopping-lists') ? 'text-green-700 font-semibold bg-green-50 ring-1 ring-green-100 px-3 py-1 rounded' : 'text-gray-700 font-semibold hover:text-green-600'} transition duration-300`}>
+                <span>Shopping</span>
+                <span className={`block h-0.5 bg-green-700 rounded mt-1 transition-all duration-300 ${isActive('/shopping-lists') ? 'w-full' : 'w-0'}`}></span>
+              </Link>
+              <Link to="/meal-plans" className={`relative inline-block ${isActive('/meal-plans') ? 'text-green-700 font-semibold bg-green-50 ring-1 ring-green-100 px-3 py-1 rounded' : 'text-gray-700 font-semibold hover:text-green-600'} transition duration-300`}>
+                <span>Meal Planner</span>
+                <span className={`block h-0.5 bg-green-700 rounded mt-1 transition-all duration-300 ${isActive('/meal-plans') ? 'w-full' : 'w-0'}`}></span>
+              </Link>
               {user.role === 'admin' && (
-                <Link to="/admin/recipes" className="text-gray-700 font-semibold hover:text-green-600 transition duration-300">Admin</Link>
+                <div
+                  className="relative"
+                  onMouseEnter={() => {
+                    if (adminHideTimeout.current) { clearTimeout(adminHideTimeout.current); adminHideTimeout.current = null; }
+                    setAdminDropdownVisible(true);
+                  }}
+                  onFocus={() => {
+                    if (adminHideTimeout.current) { clearTimeout(adminHideTimeout.current); adminHideTimeout.current = null; }
+                    setAdminDropdownVisible(true);
+                  }}
+                  onMouseLeave={() => {
+                    adminHideTimeout.current = setTimeout(() => setAdminDropdownVisible(false), 300);
+                  }}
+                  onBlur={() => {
+                    adminHideTimeout.current = setTimeout(() => setAdminDropdownVisible(false), 300);
+                  }}
+                >
+                  <button className={`relative inline-block ${isActive('/admin', false) ? 'text-green-700 font-semibold bg-green-50 ring-1 ring-green-100 px-3 py-1 rounded' : 'text-gray-700 font-semibold hover:text-green-600'} transition duration-300`}> 
+                    <span>Admin</span>
+                    <span className={`block h-0.5 bg-green-700 rounded mt-1 transition-all duration-300 ${isActive('/admin', false) ? 'w-full' : 'w-0'}`}></span>
+                  </button>
+                  <div className={`absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 transition-all transform origin-top ${adminDropdownVisible ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-1'}`}>
+                    <Link to="/admin/recipes" onClick={() => setAdminDropdownVisible(false)} className="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-t-lg transition duration-300">Recipe Management</Link>
+                    <Link to="/admin/users" onClick={() => setAdminDropdownVisible(false)} className="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-b-lg transition duration-300">User Control</Link>
+                  </div>
+                </div>
               )}
               <div
                 className="relative"
@@ -125,12 +172,18 @@ const Header = () => {
           <nav className="px-4 py-4 space-y-3">
             {user ? (
               <>
-                <Link to="/" onClick={() => setIsOpen(false)} className="block text-gray-700 font-semibold hover:text-green-600 py-2 transition duration-300">Home</Link>
-                <Link to="/recipes" onClick={() => setIsOpen(false)} className="block text-gray-700 font-semibold hover:text-green-600 py-2 transition duration-300">Recipes</Link>
-                <Link to="/shopping-lists" onClick={() => setIsOpen(false)} className="block text-gray-700 font-semibold hover:text-green-600 py-2 transition duration-300">Shopping</Link>
-                <Link to="/meal-plans" onClick={() => setIsOpen(false)} className="block text-gray-700 font-semibold hover:text-green-600 py-2 transition duration-300">Meal Planner</Link>
-                <Link to="/profile" onClick={() => setIsOpen(false)} className="block text-gray-700 font-semibold hover:text-green-600 py-2 transition duration-300">Profile</Link>
+                <Link to="/" onClick={() => setIsOpen(false)} className={`${isActive('/') ? 'text-green-700 font-semibold bg-green-50 ring-1 ring-green-100 px-3 py-1 rounded' : 'text-gray-700 font-semibold hover:text-green-600'} block transition duration-300`}>Home</Link>
+                <Link to="/recipes" onClick={() => setIsOpen(false)} className={`${isActive('/recipes') ? 'text-green-700 font-semibold bg-green-50 ring-1 ring-green-100 px-3 py-1 rounded' : 'text-gray-700 font-semibold hover:text-green-600'} block transition duration-300`}>Recipes</Link>
+                <Link to="/shopping-lists" onClick={() => setIsOpen(false)} className={`${isActive('/shopping-lists') ? 'text-green-700 font-semibold bg-green-50 ring-1 ring-green-100 px-3 py-1 rounded' : 'text-gray-700 font-semibold hover:text-green-600'} block transition duration-300`}>Shopping</Link>
+                <Link to="/meal-plans" onClick={() => setIsOpen(false)} className={`${isActive('/meal-plans') ? 'text-green-700 font-semibold bg-green-50 ring-1 ring-green-100 px-3 py-1 rounded' : 'text-gray-700 font-semibold hover:text-green-600'} block transition duration-300`}>Meal Planner</Link>
+                <Link to="/profile" onClick={() => setIsOpen(false)} className={`${isActive('/profile') ? 'text-green-700 font-semibold bg-green-50 ring-1 ring-green-100 px-3 py-1 rounded' : 'text-gray-700 font-semibold hover:text-green-600'} block transition duration-300`}>Profile</Link>
                 <button onClick={handleLogout} className="w-full text-left text-red-600 font-semibold hover:text-red-700 py-2 transition duration-300">Logout</button>
+                {user.role === 'admin' && (
+                  <>
+                    <Link to="/admin/recipes" onClick={() => setIsOpen(false)} className="block text-gray-700 font-semibold hover:text-green-600 py-2 transition duration-300">Recipe Management</Link>
+                    <Link to="/admin/users" onClick={() => setIsOpen(false)} className="block text-gray-700 font-semibold hover:text-green-600 py-2 transition duration-300">User Control</Link>
+                  </>
+                )}
               </>
             ) : (
               <>

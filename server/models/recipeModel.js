@@ -71,6 +71,12 @@ const recipeSchema = new mongoose.Schema(
       type: String, // e.g., 'Italian'
       trim: true,
     },
+    // Normalized ingredient tags for fast lookup/search
+    ingredientTags: {
+      type: [String],
+      default: [],
+      index: true,
+    },
     // --- Review Fields ---
     reviews: [reviewSchema], // Nests the review schema from above
     rating: {

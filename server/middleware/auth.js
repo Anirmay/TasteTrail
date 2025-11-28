@@ -21,6 +21,9 @@ const verifyToken = async (req, res, next) => {
     
     req.user = user;
     req.userId = decoded.id;
+    if (user.disabled) {
+      return res.status(403).json({ message: 'Account disabled' });
+    }
     next();
   } catch (error) {
     return res.status(401).json({ message: 'Invalid or expired token' });

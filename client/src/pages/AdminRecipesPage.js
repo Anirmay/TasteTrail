@@ -34,7 +34,8 @@ const AdminRecipesPage = () => {
   const fetchRecipes = async () => {
     try {
       setLoading(true);
-      const data = await getRecipes();
+      // Admin view should show all recipes; opt out of any user preference filtering
+      const data = await getRecipes({ applyPreferences: false });
       setRecipes(data.recipes || []);
     } catch (err) {
       console.error('Error loading recipes', err);

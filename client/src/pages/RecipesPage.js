@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getRecipes } from '../services/recipeService';
+import dietaryOptions from '../constants/dietaryOptions';
 import CollectionsModal from '../components/CollectionsModal';
 
 const RecipesPage = () => {
@@ -16,20 +17,16 @@ const RecipesPage = () => {
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
+  const [ingredientTerm, setIngredientTerm] = useState('');
   const [selectedDiets, setSelectedDiets] = useState([]);
   const [selectedCuisine, setSelectedCuisine] = useState('');
   const [maxPrepTime, setMaxPrepTime] = useState('');
   const [sortBy, setSortBy] = useState('createdAt');
+  const [applyPreferences, setApplyPreferences] = useState(!!localStorage.getItem('user'));
 
   // Available options
-  const dietOptions = [
-    'Vegan',
-    'Vegetarian',
-    'Gluten-Free',
-    'Dairy-Free',
-    'Keto',
-    'Paleo',
-  ];
+  // Use central dietary options so filters match registration/profile lists
+  const dietOptions = dietaryOptions.filter(opt => opt !== 'None');
   const cuisineOptions = [
     'Italian',
     'Mexican',
@@ -63,20 +60,28 @@ const RecipesPage = () => {
         setError('');
 
         const filters = {
-          search: searchTerm,
+          search: searchTerm || undefined,
+          ingredient: ingredientTerm || undefined,
           dietaryTags: selectedDiets.length > 0 ? selectedDiets : undefined,
           cuisine: selectedCuisine || undefined,
           maxPrepTime: maxPrepTime || undefined,
           sortBy,
+          // Explicitly include applyPreferences flag so server knows user's choice
+          applyPreferences: applyPreferences === false ? false : true,
         };
 
         // Remove undefined values
-        Object.keys(filters).forEach(
-          (key) => filters[key] === undefined && delete filters[key]
-        );
+        Object.keys(filters).forEach((key) => filters[key] === undefined && delete filters[key]);
+
+        // Debug: log filters being sent
+        console.log('[RecipesPage] fetching with filters:', filters);
 
         const data = await getRecipes(filters);
         setRecipes(data.recipes || []);
+        // If server returned appliedFilters, show it in debug output
+        if (data.appliedFilters) {
+          console.log('[RecipesPage] server appliedFilters:', data.appliedFilters);
+        }
       } catch (err) {
         setError('Failed to load recipes. Please try again later.');
         console.error('Error fetching recipes:', err);
@@ -86,7 +91,18 @@ const RecipesPage = () => {
     };
 
     fetchRecipes();
-  }, [searchTerm, selectedDiets, selectedCuisine, maxPrepTime, sortBy]);
+  }, [searchTerm, ingredientTerm, selectedDiets, selectedCuisine, maxPrepTime, sortBy, applyPreferences]);
+
+  // Expose current filters for quick UI debugging
+  const currentFilters = {
+    search: searchTerm || undefined,
+    ingredient: ingredientTerm || undefined,
+    dietaryTags: selectedDiets.length > 0 ? selectedDiets : undefined,
+    cuisine: selectedCuisine || undefined,
+    maxPrepTime: maxPrepTime || undefined,
+    sortBy,
+    applyPreferences: applyPreferences === false ? false : true,
+  };
 
   const toggleDietFilter = (diet) => {
     setSelectedDiets((prev) =>
@@ -123,26 +139,46 @@ const RecipesPage = () => {
             <div className="bg-white rounded-lg shadow-sm p-6 sticky top-24">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold">Filters</h2>
-                <button
+                <div className="flex items-center gap-3">
+                  {localStorage.getItem('user') && (
+                    <label className="flex items-center gap-2 text-sm text-gray-600">
+                      <input
+                        type="checkbox"
+                        checked={applyPreferences}
+                        onChange={(e) => setApplyPreferences(e.target.checked)}
+                        className="w-4 h-4 text-orange-500 rounded"
+                      />
+                      <span>Filter by your preferences</span>
+                    </label>
+                  )}
+                  <button
                   onClick={clearFilters}
                   className="text-sm text-orange-500 hover:text-orange-600"
                 >
                   Clear All
                 </button>
+                </div>
               </div>
 
-              {/* Search */}
-              <div className="mb-6">
+                {/* Search */}
+                <div className="mb-6">
                 <label className="block text-sm font-semibold mb-2">
                   Search Recipe
                 </label>
-                <input
-                  type="text"
-                  placeholder="Recipe name..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                />
+                  <input
+                    type="text"
+                    placeholder="Recipe name..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Search ingredient (e.g., tomato, chicken)"
+                    value={ingredientTerm}
+                    onChange={(e) => setIngredientTerm(e.target.value)}
+                    className="w-full mt-3 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+                  />
               </div>
 
               {/* Dietary Preferences */}
@@ -217,10 +253,30 @@ const RecipesPage = () => {
                 </select>
               </div>
             </div>
+
+            {/* Debug: show current filters (visible) to help confirm UI state */}
+            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-100 rounded text-sm text-gray-700">
+              <div className="font-semibold mb-1">Active Filters (debug)</div>
+              <div className="text-xs">
+                {JSON.stringify(currentFilters)}
+              </div>
+            </div>
           </div>
 
           {/* Recipes Grid */}
           <div className="lg:col-span-3">
+            {/* Preference badge */}
+            {localStorage.getItem('user') && applyPreferences && (
+              <div className="mb-4 flex items-center gap-3">
+                <span className="inline-block bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full font-semibold">Filtered by your preferences</span>
+                <button
+                  onClick={() => setApplyPreferences(false)}
+                  className="text-sm text-gray-600 underline"
+                >
+                  Turn off
+                </button>
+              </div>
+            )}
             {error && (
               <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
                 {error}

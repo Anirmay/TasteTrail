@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import TagInput from '../components/TagInput';
+import dietaryOptions from '../constants/dietaryOptions';
 import axios from 'axios';
 
 const ProfilePage = () => {
@@ -17,11 +19,15 @@ const ProfilePage = () => {
     name: '',
     email: '',
     dietary: '',
-    allergies: '',
-    favoriteCuisines: ''
+    allergies: [],
+    favoriteCuisines: []
   });
 
-  const dietaryOptions = ['None', 'Vegetarian', 'Vegan', 'Gluten-Free', 'Keto', 'Paleo', 'Halal', 'Kosher'];
+  
+  // dietary options imported from shared constant
+  // keep available options consistent across registration, profile and discovery pages
+  
+  // dietaryOptions is imported at top and used directly in JSX
   const cuisineOptions = ['Italian', 'Chinese', 'Indian', 'Japanese', 'Mexican', 'Thai', 'French', 'Mediterranean', 'Korean', 'Spanish'];
 
   useEffect(() => {
@@ -33,22 +39,26 @@ const ProfilePage = () => {
 
     const parsedUser = JSON.parse(userData);
     setUser(parsedUser);
-    
-    // Convert arrays to comma-separated strings for form display
-    const allergiesStr = Array.isArray(parsedUser.allergies) 
-      ? parsedUser.allergies.join(', ') 
-      : (parsedUser.allergies || '');
-    
-    const cuisinesStr = Array.isArray(parsedUser.favoriteCuisines) 
-      ? parsedUser.favoriteCuisines.join(', ') 
-      : (parsedUser.favoriteCuisines || '');
-    
+
+    // Normalize preference fields into arrays for TagInput
+    const allergiesArr = Array.isArray(parsedUser.allergies)
+      ? parsedUser.allergies
+      : (parsedUser.allergies ? [parsedUser.allergies] : []);
+
+    const cuisinesArr = Array.isArray(parsedUser.favoriteCuisines)
+      ? parsedUser.favoriteCuisines
+      : (parsedUser.favoriteCuisines ? [parsedUser.favoriteCuisines] : []);
+
+    const dietaryVal = Array.isArray(parsedUser.dietaryPreferences)
+      ? (parsedUser.dietaryPreferences[0] || 'None')
+      : (parsedUser.dietaryPreferences || parsedUser.dietary || 'None');
+
     setFormData({
       name: parsedUser.name || '',
       email: parsedUser.email || '',
-      dietary: parsedUser.dietary || 'None',
-      allergies: allergiesStr,
-      favoriteCuisines: cuisinesStr
+      dietary: dietaryVal,
+      allergies: allergiesArr,
+      favoriteCuisines: cuisinesArr
     });
     setLoading(false);
   }, [navigate]);
@@ -59,6 +69,10 @@ const ProfilePage = () => {
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleArrayChange = (field, arr) => {
+    setFormData(prev => ({ ...prev, [field]: arr }));
   };
 
   const handleSave = async (e) => {
@@ -91,9 +105,21 @@ const ProfilePage = () => {
         }
       );
 
-      // Update localStorage with new user data
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      setUser(response.data.user);
+      // Preserve token in localStorage (server returns user object without token)
+      const existing = localStorage.getItem('user');
+      let existingToken = null;
+      try {
+        existingToken = existing ? JSON.parse(existing).token : null;
+      } catch (e) {
+        existingToken = localStorage.getItem('token');
+      }
+
+      const merged = { ...response.data.user };
+      if (existingToken) merged.token = existingToken;
+
+      // Update localStorage and UI
+      localStorage.setItem('user', JSON.stringify(merged));
+      setUser(merged);
       setEditing(false);
       setMessageType('success');
       setMessage('Profile updated successfully!');
@@ -180,7 +206,7 @@ const ProfilePage = () => {
 
                 <div className="border-b border-gray-200 pb-4">
                   <p className="text-gray-600 text-sm font-semibold mb-2">DIETARY PREFERENCE</p>
-                  <p className="text-2xl text-gray-900 font-semibold">{user.dietary || 'None'}</p>
+                      <p className="text-2xl text-gray-900 font-semibold">{(Array.isArray(user.dietaryPreferences) ? (user.dietaryPreferences[0] || 'None') : (user.dietary || 'None'))}</p>
                 </div>
 
                 {user.allergies && (
@@ -198,7 +224,7 @@ const ProfilePage = () => {
                     <div className="flex flex-wrap gap-2">
                       {(Array.isArray(user.favoriteCuisines) 
                         ? user.favoriteCuisines 
-                        : user.favoriteCuisines.split(',')).map((cuisine, index) => (
+                        : (typeof user.favoriteCuisines === 'string' ? user.favoriteCuisines.split(',') : [])).map((cuisine, index) => (
                         <span key={index} className="bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-semibold">
                           {typeof cuisine === 'string' ? cuisine.trim() : cuisine}
                         </span>
@@ -265,27 +291,21 @@ const ProfilePage = () => {
 
                 {/* Allergies */}
                 <div>
-                  <label className="block text-gray-700 font-semibold mb-2">Allergies (comma-separated)</label>
-                  <textarea
-                    name="allergies"
+                  <label className="block text-gray-700 font-semibold mb-2">Allergies</label>
+                  <TagInput
                     value={formData.allergies}
-                    onChange={handleChange}
-                    placeholder="e.g., peanuts, shellfish, dairy"
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 text-gray-700 font-semibold focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
-                    rows="3"
+                    onChange={(arr) => handleArrayChange('allergies', arr)}
+                    placeholder="Type an allergy and press Enter"
                   />
                 </div>
 
                 {/* Favorite Cuisines */}
                 <div>
-                  <label className="block text-gray-700 font-semibold mb-2">Favorite Cuisines (comma-separated)</label>
-                  <textarea
-                    name="favoriteCuisines"
+                  <label className="block text-gray-700 font-semibold mb-2">Favorite Cuisines</label>
+                  <TagInput
                     value={formData.favoriteCuisines}
-                    onChange={handleChange}
-                    placeholder="e.g., Italian, Chinese, Japanese"
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 text-gray-700 font-semibold focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
-                    rows="3"
+                    onChange={(arr) => handleArrayChange('favoriteCuisines', arr)}
+                    placeholder="Type a cuisine and press Enter"
                   />
                 </div>
 
@@ -305,9 +325,9 @@ const ProfilePage = () => {
                       setFormData({
                         name: user.name || '',
                         email: user.email || '',
-                        dietary: user.dietary || 'None',
-                        allergies: user.allergies || '',
-                        favoriteCuisines: user.favoriteCuisines || ''
+                        dietary: Array.isArray(user.dietaryPreferences) ? (user.dietaryPreferences[0] || 'None') : (user.dietary || 'None'),
+                        allergies: Array.isArray(user.allergies) ? user.allergies : (user.allergies ? [user.allergies] : []),
+                        favoriteCuisines: Array.isArray(user.favoriteCuisines) ? user.favoriteCuisines : (user.favoriteCuisines ? [user.favoriteCuisines] : [])
                       });
                     }}
                     className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition duration-300"

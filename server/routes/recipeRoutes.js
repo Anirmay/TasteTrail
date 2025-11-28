@@ -11,6 +11,7 @@ import {
   addReview,
   editReview,
   deleteReview,
+  debugDietaryTags,
 } from '../controllers/recipeController.js';
 import { verifyToken } from '../middleware/auth.js';
 
@@ -48,6 +49,7 @@ const uploadRecipe = multer({ storage: recipeStorage });
 
 // Public routes
 router.get('/', getRecipes);
+router.get('/debug/dietary-tags', debugDietaryTags);
 router.get('/:id', getRecipeById);
 
 // Private routes (require authentication)

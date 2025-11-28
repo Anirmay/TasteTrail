@@ -1,7 +1,66 @@
 import axios from 'axios';
 
-// Define the base URL for our backend API
 const API_URL = 'http://localhost:5000/api/users';
+
+const getToken = () => {
+  const stored = localStorage.getItem('user') || localStorage.getItem('token');
+  try {
+    return stored ? JSON.parse(stored).token : stored;
+  } catch (e) {
+    return stored;
+  }
+};
+
+export const getUsers = async (params = {}) => {
+  try {
+    const token = getToken();
+    const config = { headers: {} };
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+    const response = await axios.get(API_URL, { params, ...config });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    throw error;
+  }
+};
+
+export const updateUserRole = async (id, role) => {
+  try {
+    const token = getToken();
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+    const response = await axios.put(`${API_URL}/${id}/role`, { role }, config);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating role:', error);
+    throw error;
+  }
+};
+
+export const toggleUserDisabled = async (id, disabled) => {
+  try {
+    const token = getToken();
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+    const response = await axios.put(`${API_URL}/${id}/disable`, { disabled }, config);
+    return response.data;
+  } catch (error) {
+    console.error('Error toggling disabled:', error);
+    throw error;
+  }
+};
+
+export const deleteUser = async (id) => {
+  try {
+    const token = getToken();
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+    const response = await axios.delete(`${API_URL}/${id}`, config);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    throw error;
+  }
+};
+
+// merged module: removed duplicate default export and duplicate imports/constants
 
 // Register user
 const register = async (userData) => {

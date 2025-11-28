@@ -1,12 +1,51 @@
 import Recipe from '../models/recipeModel.js';
 import fs from 'fs';
 import path from 'path';
+import jwt from 'jsonwebtoken';
+import User from '../models/userModel.js';
+
+// Helper: normalize ingredient strings -> tokens for ingredientTags
+const normalizeIngredientText = (text) => {
+  if (!text) return [];
+  // Lowercase
+  let s = String(text).toLowerCase();
+
+  // Remove parenthetical content
+  s = s.replace(/\([^\)]*\)/g, ' ');
+  // Remove fractions and numbers like 1/2 or 2.5
+  s = s.replace(/\b\d+[\d\/.]*\b/g, ' ');
+  // Remove common measurement units
+  s = s.replace(/\b(cups?|cup|tbsp|tablespoons?|tablespoon|tbsps?|tsp|teaspoons?|grams?|g|kg|ml|l|oz|ounces?|pounds?|lbs?)\b/g, ' ');
+  // Remove punctuation
+  s = s.replace(/[^a-z\s]/g, ' ');
+  // Split into tokens
+  const tokens = s.split(/\s+/).map(t => t.trim()).filter(Boolean);
+
+  // Stopwords / noise words commonly in ingredient lines
+  const stop = new Set(['and','or','of','the','a','an','fresh','large','small','chopped','diced','minced','to','taste','optional','into','for','with','in','on','about']);
+
+  const normalized = tokens.filter(t => t.length > 2 && !stop.has(t));
+  // Return unique tokens
+  return Array.from(new Set(normalized));
+};
+
+// Helper: from ingredients array produce ingredientTags array
+const buildIngredientTagsFromIngredients = (ingredients) => {
+  if (!ingredients) return [];
+  const arr = Array.isArray(ingredients) ? ingredients : String(ingredients).split(',');
+  const tags = new Set();
+  arr.forEach(item => {
+    normalizeIngredientText(item).forEach(tok => tags.add(tok));
+  });
+  return Array.from(tags);
+};
 
 // @desc    Get all recipes with optional filtering
 // @route   GET /api/recipes
 // @access  Public
 export const getRecipes = async (req, res) => {
   try {
+    process.stdout.write(`\n[getRecipes] incoming query: ${JSON.stringify(req.query)}\n`);
     const {
       search,
       dietaryTags,
@@ -14,7 +53,25 @@ export const getRecipes = async (req, res) => {
       maxPrepTime,
       minRating,
       sortBy,
+      debug,
     } = req.query;
+
+    // Optionally apply preferences from logged-in user. Set ?applyPreferences=false to opt-out.
+    const applyPrefParam = String(req.query.applyPreferences ?? 'true');
+    const shouldApplyPrefs = applyPrefParam !== 'false';
+
+    // If an Authorization token is present and prefs are allowed, attempt to load the user
+    let prefUser = null;
+    try {
+      const token = req.headers.authorization?.split(' ')[1];
+      if (token && shouldApplyPrefs) {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret_key_change_in_production');
+        prefUser = await User.findById(decoded.id).lean();
+      }
+    } catch (err) {
+      // Invalid token or user not found — ignore and continue as public
+      prefUser = null;
+    }
 
     // Build filter object
     let filter = {};
@@ -27,17 +84,125 @@ export const getRecipes = async (req, res) => {
       ];
     }
 
-    // Filter by dietary tags
+    // Filter by dietary tags (case-insensitive). If client provided dietary filters,
+    // they should take precedence over user preferences.
     if (dietaryTags) {
-      const tagsArray = Array.isArray(dietaryTags)
-        ? dietaryTags
-        : [dietaryTags];
-      filter.dietaryTags = { $in: tagsArray };
+      console.log('[getRecipes] dietaryTags input:', typeof dietaryTags, JSON.stringify(dietaryTags));
+      // Normalize dietaryTags into an array when received as a string (comma-separated or JSON)
+      let tagsArray = [];
+      if (Array.isArray(dietaryTags)) {
+        tagsArray = dietaryTags;
+      } else if (typeof dietaryTags === 'string') {
+        try {
+          // attempt JSON parse (e.g., dietaryTags=["Vegan","Keto"]) or CSV
+          const parsed = JSON.parse(dietaryTags);
+          tagsArray = Array.isArray(parsed) ? parsed : [String(parsed)];
+          console.log('[getRecipes] parsed as JSON:', tagsArray);
+        } catch (e) {
+          // fallback: split by comma
+          tagsArray = dietaryTags.split(',').map(s => s.trim()).filter(Boolean);
+          console.log('[getRecipes] parsed as CSV:', tagsArray);
+        }
+      } else {
+        tagsArray = [String(dietaryTags)];
+      }
+
+      console.log('[getRecipes] final tagsArray:', tagsArray);
+      
+      // Build $or array with $regex conditions for case-insensitive partial-match
+      // so values like 'Vegetarian-optional' match 'Vegetarian'
+      const dietaryOrConditions = tagsArray.map(tag => ({
+        dietaryTags: {
+          $elemMatch: {
+            $regex: String(tag).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+            $options: 'i'
+          }
+        }
+      }));
+      console.log('[getRecipes] dietaryOrConditions:', JSON.stringify(dietaryOrConditions));
+      
+      // Use $or for dietary tags (match any dietary tag), but keep separate from search $or
+      // We'll add this to $and to combine with search filter if needed
+      if (filter.$or) {
+        // If there's already a search $or, we need to AND it with dietary $or
+        filter.$and = [
+          { $or: filter.$or },
+          { $or: dietaryOrConditions }
+        ];
+        delete filter.$or;
+      } else {
+        filter.$or = dietaryOrConditions;
+      }
     }
+
+    // If user preferences were loaded, apply them when the client didn't explicitly provide filters
+    if (prefUser) {
+      // Apply dietary preferences only if no dietaryTags query provided
+      if ((!dietaryTags || (Array.isArray(dietaryTags) && dietaryTags.length === 0)) && Array.isArray(prefUser.dietaryPreferences) && prefUser.dietaryPreferences.length > 0) {
+        const prefOrConditions = prefUser.dietaryPreferences.map(tag => ({
+          dietaryTags: {
+            $elemMatch: {
+              $regex: String(tag).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+              $options: 'i'
+            }
+          }
+        }));
+        console.log('[getRecipes] user pref orConditions:', JSON.stringify(prefOrConditions));
+        
+        // Add to $and if search exists, otherwise set as $or
+        if (filter.$or && !filter.$and) {
+          filter.$and = [
+            { $or: filter.$or },
+            { $or: prefOrConditions }
+          ];
+          delete filter.$or;
+        } else if (filter.$and) {
+          filter.$and.push({ $or: prefOrConditions });
+        } else {
+          filter.$or = prefOrConditions;
+        }
+      }
+
+      // Apply cuisine preference only if client didn't pass a cuisine filter
+      if (!cuisine && Array.isArray(prefUser.favoriteCuisines) && prefUser.favoriteCuisines.length > 0) {
+        filter.cuisine = { $in: prefUser.favoriteCuisines };
+      }
+
+      // Exclude recipes that match any of the user's allergies (if provided)
+      if (Array.isArray(prefUser.allergies) && prefUser.allergies.length > 0) {
+        // Build a $nor array where each entry is an elemMatch regex on ingredients
+        const allergyExclusions = prefUser.allergies
+          .filter(a => a && a.trim())
+          .map(a => ({ ingredients: { $elemMatch: { $regex: a.trim(), $options: 'i' } } }));
+        if (allergyExclusions.length > 0) {
+          filter.$nor = (filter.$nor || []).concat(allergyExclusions);
+        }
+      }
+    }
+
+    console.log('[getRecipes] built filter:', JSON.stringify(filter, (_k, v) => (v && v.toString ? v.toString() : v)));
+
+    // Build a summary of applied filters for client-side debugging (regexes to strings)
+    const appliedFilters = {};
+    if (req.query.search) appliedFilters.search = req.query.search;
+    if (req.query.ingredient) appliedFilters.ingredient = req.query.ingredient;
+    if (dietaryTags) appliedFilters.dietaryTags = Array.isArray(dietaryTags) ? dietaryTags : String(dietaryTags).split(',').map(s => s.trim());
+    if (cuisine) appliedFilters.cuisine = cuisine;
+    if (maxPrepTime) appliedFilters.maxPrepTime = maxPrepTime;
+    appliedFilters.applyPreferences = shouldApplyPrefs;
 
     // Filter by cuisine
     if (cuisine) {
       filter.cuisine = { $regex: cuisine, $options: 'i' };
+    }
+
+    // Ingredient tag search (client passes `ingredient=<term>`)
+    if (req.query.ingredient) {
+      // Normalize the incoming ingredient search into tokens and match any
+      const searchTokens = buildIngredientTagsFromIngredients([req.query.ingredient]);
+      if (searchTokens.length > 0) {
+        filter.ingredientTags = { $in: searchTokens };
+      }
     }
 
     // Filter by max prep time
@@ -67,10 +232,19 @@ export const getRecipes = async (req, res) => {
       .sort(sortObj)
       .lean();
 
+    // If debug flag is set, include distinct dietary tags in response
+    let debugInfo = null;
+    if (debug === 'true') {
+      const distinctTags = await Recipe.distinct('dietaryTags');
+      debugInfo = { distinctDietaryTags: distinctTags };
+    }
+
     res.status(200).json({
       success: true,
       count: recipes.length,
       recipes,
+      appliedFilters,
+      ...(debugInfo && { debug: debugInfo }),
     });
   } catch (error) {
     res.status(500).json({
@@ -175,6 +349,8 @@ export const createRecipe = async (req, res) => {
         : [],
       cuisine: cuisine || '',
       image: file ? `/uploads/recipes/${file.filename}` : (image || '/images/default_recipe.svg'),
+      // compute ingredient tags for normalized search
+      ingredientTags: buildIngredientTagsFromIngredients(Array.isArray(ingredients) ? ingredients : ingredients.split(',').map(i => i.trim())),
     });
 
     await recipe.save();
@@ -245,6 +421,14 @@ export const updateRecipe = async (req, res) => {
         }
       }
     });
+
+    // Recompute ingredientTags if ingredients updated
+    if (req.body.ingredients !== undefined) {
+      const ingredientsArr = Array.isArray(req.body.ingredients)
+        ? req.body.ingredients
+        : String(req.body.ingredients).split(',').map(i => i.trim());
+      recipe.ingredientTags = buildIngredientTagsFromIngredients(ingredientsArr);
+    }
 
     // If a new image file was uploaded, remove the old one (if it's a local upload)
     if (req.file) {
@@ -529,6 +713,20 @@ export const deleteReview = async (req, res) => {
   }
 };
 
+// Debug endpoint: inspect distinct dietaryTags in DB
+export const debugDietaryTags = async (req, res) => {
+  try {
+    const distinct = await Recipe.distinct('dietaryTags');
+    const allRecipes = await Recipe.find({}, { name: 1, dietaryTags: 1 }).limit(20).lean();
+    res.status(200).json({
+      distinctTags: distinct,
+      sampleRecipes: allRecipes,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export default {
   getRecipes,
   getRecipeById,
@@ -538,4 +736,5 @@ export default {
   addReview,
   editReview,
   deleteReview,
+  debugDietaryTags,
 };
