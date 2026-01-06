@@ -70,7 +70,7 @@ TasteTrail/
 │   ├── server.js
 │   └── package.json
 └── .gitignore
-```
+````
 
 ## Getting Started
 
