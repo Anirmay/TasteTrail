@@ -87,6 +87,7 @@ const MealPlannerPage = () => {
   const [mealPlan, setMealPlan] = useState(null);
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
+  // eslint-disable-next-line no-unused-vars
   const [error, setError] = useState(null);
   const [showRecipeModal, setShowRecipeModal] = useState(false);
   const [selectedDay, setSelectedDay] = useState(null);

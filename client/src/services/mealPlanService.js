@@ -128,3 +128,5 @@ const mealPlanService = {
   deleteMealPlan,
   generateShoppingListFromMealPlan,
 };
+
+export default mealPlanService;
