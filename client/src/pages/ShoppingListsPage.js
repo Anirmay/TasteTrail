@@ -19,6 +19,7 @@ const ShoppingListsPage = () => {
     }
 
     fetchLists();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
   const fetchLists = async () => {

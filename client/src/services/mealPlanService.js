@@ -118,7 +118,7 @@ export const generateShoppingListFromMealPlan = async (mealPlanId) => {
   }
 };
 
-export default {
+const mealPlanService = {
   createMealPlan,
   getMealPlans,
   getMealPlanById,

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/recipes';
+const API_URL = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api') + '/recipes';
 
 // Get all recipes with filtering
 export const getRecipes = async (filters = {}) => {
@@ -118,7 +118,6 @@ export const addReview = async (id, reviewData) => {
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
     // If reviewData is FormData (contains photo), let axios set Content-Type automatically
-    const isForm = typeof FormData !== 'undefined' && reviewData instanceof FormData;
     const config = { headers: { ...headers } };
 
     const response = await axios.post(`${API_URL}/${id}/reviews`, reviewData, config);

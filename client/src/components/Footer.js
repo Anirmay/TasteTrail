@@ -23,16 +23,16 @@ const Footer = () => {
             </p>
             {/* Social Media */}
             <div className="flex space-x-4 mt-6">
-              <a href="#" className="w-10 h-10 rounded-full bg-green-600 hover:bg-green-500 flex items-center justify-center transition duration-300 transform hover:scale-110">
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-green-600 hover:bg-green-500 flex items-center justify-center transition duration-300 transform hover:scale-110">
                 <span className="text-white font-bold">f</span>
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-green-600 hover:bg-green-500 flex items-center justify-center transition duration-300 transform hover:scale-110">
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-green-600 hover:bg-green-500 flex items-center justify-center transition duration-300 transform hover:scale-110">
                 <span className="text-white font-bold">𝕏</span>
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-green-600 hover:bg-green-500 flex items-center justify-center transition duration-300 transform hover:scale-110">
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-green-600 hover:bg-green-500 flex items-center justify-center transition duration-300 transform hover:scale-110">
                 <span className="text-white font-bold">📷</span>
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-green-600 hover:bg-green-500 flex items-center justify-center transition duration-300 transform hover:scale-110">
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-green-600 hover:bg-green-500 flex items-center justify-center transition duration-300 transform hover:scale-110">
                 <span className="text-white font-bold">in</span>
               </a>
             </div>
@@ -43,10 +43,10 @@ const Footer = () => {
             <h4 className="text-white font-bold text-lg mb-6">Product</h4>
             <ul className="space-y-3">
               <li><Link to="/recipes" className="text-gray-400 hover:text-green-400 transition duration-300">Browse Recipes</Link></li>
-              <li><Link to="/meal-planner" className="text-gray-400 hover:text-green-400 transition duration-300">Meal Planner</Link></li>
-              <li><a href="#" className="text-gray-400 hover:text-green-400 transition duration-300">Shopping List</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-green-400 transition duration-300">Collections</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-green-400 transition duration-300">Pricing</a></li>
+              <li><Link to="/meal-plans" className="text-gray-400 hover:text-green-400 transition duration-300">Meal Planner</Link></li>
+              <li><Link to="/shopping-lists" className="text-gray-400 hover:text-green-400 transition duration-300">Shopping List</Link></li>
+              <li><Link to="/collections" className="text-gray-400 hover:text-green-400 transition duration-300">Collections</Link></li>
+              <li><Link to="/" className="text-gray-400 hover:text-green-400 transition duration-300">Pricing</Link></li>
             </ul>
           </div>
 
@@ -54,11 +54,11 @@ const Footer = () => {
           <div>
             <h4 className="text-white font-bold text-lg mb-6">Company</h4>
             <ul className="space-y-3">
-              <li><a href="#" className="text-gray-400 hover:text-green-400 transition duration-300">About Us</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-green-400 transition duration-300">Blog</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-green-400 transition duration-300">Careers</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-green-400 transition duration-300">Press</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-green-400 transition duration-300">Contact</a></li>
+              <li><Link to="/" className="text-gray-400 hover:text-green-400 transition duration-300">About Us</Link></li>
+              <li><Link to="/" className="text-gray-400 hover:text-green-400 transition duration-300">Blog</Link></li>
+              <li><Link to="/" className="text-gray-400 hover:text-green-400 transition duration-300">Careers</Link></li>
+              <li><Link to="/" className="text-gray-400 hover:text-green-400 transition duration-300">Press</Link></li>
+              <li><Link to="/" className="text-gray-400 hover:text-green-400 transition duration-300">Contact</Link></li>
             </ul>
           </div>
 
@@ -66,11 +66,11 @@ const Footer = () => {
           <div>
             <h4 className="text-white font-bold text-lg mb-6">Legal</h4>
             <ul className="space-y-3">
-              <li><a href="#" className="text-gray-400 hover:text-green-400 transition duration-300">Privacy Policy</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-green-400 transition duration-300">Terms of Service</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-green-400 transition duration-300">Cookie Policy</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-green-400 transition duration-300">GDPR</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-green-400 transition duration-300">Accessibility</a></li>
+              <li><Link to="/" className="text-gray-400 hover:text-green-400 transition duration-300">Privacy Policy</Link></li>
+              <li><Link to="/" className="text-gray-400 hover:text-green-400 transition duration-300">Terms of Service</Link></li>
+              <li><Link to="/" className="text-gray-400 hover:text-green-400 transition duration-300">Cookie Policy</Link></li>
+              <li><Link to="/" className="text-gray-400 hover:text-green-400 transition duration-300">GDPR</Link></li>
+              <li><Link to="/" className="text-gray-400 hover:text-green-400 transition duration-300">Accessibility</Link></li>
             </ul>
           </div>
         </div>
@@ -102,9 +102,9 @@ const Footer = () => {
             &copy; {currentYear} TasteTrail. All rights reserved. | Making meal planning delicious and simple.
           </p>
           <div className="flex space-x-6 text-sm">
-            <a href="#" className="text-gray-400 hover:text-green-400 transition duration-300">Sitemap</a>
-            <a href="#" className="text-gray-400 hover:text-green-400 transition duration-300">Status</a>
-            <a href="#" className="text-gray-400 hover:text-green-400 transition duration-300">Help</a>
+            <Link to="/" className="text-gray-400 hover:text-green-400 transition duration-300">Sitemap</Link>
+            <Link to="/" className="text-gray-400 hover:text-green-400 transition duration-300">Status</Link>
+            <Link to="/" className="text-gray-400 hover:text-green-400 transition duration-300">Help</Link>
           </div>
         </div>
       </div>

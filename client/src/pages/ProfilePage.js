@@ -26,9 +26,6 @@ const ProfilePage = () => {
   
   // dietary options imported from shared constant
   // keep available options consistent across registration, profile and discovery pages
-  
-  // dietaryOptions is imported at top and used directly in JSX
-  const cuisineOptions = ['Italian', 'Chinese', 'Indian', 'Japanese', 'Mexican', 'Thai', 'French', 'Mediterranean', 'Korean', 'Spanish'];
 
   useEffect(() => {
     const userData = localStorage.getItem('user');

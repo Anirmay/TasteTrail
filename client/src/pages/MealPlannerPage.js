@@ -82,7 +82,6 @@ const DraggableDayRecipe = ({ recipe, day, onRemove }) => {
 };
 
 const MealPlannerPage = () => {
-  const navigate = useNavigate();
   const { id: mealPlanId } = useParams();
   
   const [mealPlan, setMealPlan] = useState(null);

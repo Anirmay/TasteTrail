@@ -22,6 +22,7 @@ const ShoppingListPage = () => {
 
   useEffect(() => {
     fetchShoppingList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const fetchShoppingList = async () => {
@@ -337,10 +338,10 @@ const ShoppingListPage = () => {
           body {
             background-color: white;
           }
-          .print\:hidden {
+          .print:hidden {
             display: none;
           }
-          .print\:grid-cols-1 {
+          .print:grid-cols-1 {
             grid-template-columns: 1fr;
           }
           header,
