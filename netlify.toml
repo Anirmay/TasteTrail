@@ -1,7 +1,6 @@
 [build]
-  command = "cd client && npm install && npm run build"
+  command = "npm install --prefix client && npm run build --prefix client"
   publish = "client/build"
-  base = "."
 
 [build.environment]
   REACT_APP_API_URL = "https://tastetrail-f3gc.onrender.com/api"
