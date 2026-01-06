@@ -1,6 +1,6 @@
 # TasteTrail 🍽️
 
-A modern full-stack web application for recipe discovery, meal planning, and personalized dining experiences.
+A modern full-stack web application for recipe discovery, meal planning, and personalized dining experiences...
 
 ## Features
 
@@ -70,7 +70,7 @@ TasteTrail/
 │   ├── server.js
 │   └── package.json
 └── .gitignore
-````
+```
 
 ## Getting Started
 
