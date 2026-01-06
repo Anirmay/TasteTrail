@@ -91,8 +91,9 @@ const ProfilePage = () => {
         token: token ? 'present' : 'missing'
       });
       
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
       const response = await axios.put(
-        'http://localhost:5000/api/users/profile',
+        `${apiUrl}/users/profile`,
         {
           dietary: formData.dietary,
           allergies: formData.allergies,

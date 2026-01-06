@@ -75,8 +75,9 @@ const SettingsPage = () => {
 
     try {
       const token = localStorage.getItem('token');
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
       await axios.put(
-        'http://localhost:5000/api/users/password',
+        `${apiUrl}/users/password`,
         {
           currentPassword: passwordForm.currentPassword,
           newPassword: passwordForm.newPassword
@@ -133,8 +134,9 @@ const SettingsPage = () => {
       const token = localStorage.getItem('token');
       
       // Make delete request with password verification in backend
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
       await axios.delete(
-        'http://localhost:5000/api/users/account',
+        `${apiUrl}/users/account`,
         {
           data: { password: deleteConfirmPassword },
           headers: {
