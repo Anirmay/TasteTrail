@@ -34,7 +34,22 @@ const app = express();
 // Allows us to accept JSON data in the body
 app.use(express.json());
 // Allows cross-origin requests from your React client
-app.use(cors());
+const allowedOrigins = [
+  'https://nimble-dusk-4dd9d7.netlify.app',
+  'http://localhost:3000',
+  'http://localhost:5000'
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS not allowed'));
+    }
+  },
+  credentials: true
+}));
 
 // Ensure uploads directory exists and serve it
 try {
