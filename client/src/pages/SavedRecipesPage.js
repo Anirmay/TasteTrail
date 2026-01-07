@@ -21,7 +21,8 @@ const SavedRecipesPage = () => {
 
     const fetchSaved = async () => {
       try {
-        const res = await fetch('/api/users/saved', {
+        const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+        const res = await fetch(`${apiUrl}/users/saved`, {
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
