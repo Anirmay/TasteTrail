@@ -1,6 +1,12 @@
 # TasteTrail 🍽️
 
-A modern full-stack web application for recipe discovery, meal planning, and personalized dining experiences...
+A modern full-stack web application for recipe discovery, meal planning, and personalized dining experiences.
+
+**Live Demo:**
+- 🌐 **Frontend**: [animay-tastetrail.netlify.app](https://animay-tastetrail.netlify.app)
+- 🔌 **Backend API**: [tastetrail-f3gc.onrender.com](https://tastetrail-f3gc.onrender.com)
+
+---
 
 ## Features
 
@@ -143,14 +149,68 @@ The app will open at `http://localhost:3000` (or next available port)
 - 👥 Community Sharing
 - 📊 Admin Panel
 
-## Authentication Flow
+## Deployment
 
-1. User registers with email, password, and dietary preferences
-2. Password is hashed with bcryptjs
-3. User receives JWT token on successful registration/login
-4. Token is stored in localStorage
-5. Protected routes verify token before allowing access
-6. Token included in Authorization header for API requests
+### Frontend (Netlify)
+The React frontend is deployed on **Netlify** with automatic deployments from the `main` branch.
+
+**Deploy Config** (`netlify.toml`):
+- Build command: `npm install --prefix client && npm run build --prefix client`
+- Publish directory: `client/build`
+- Environment variable: `REACT_APP_API_URL=https://tastetrail-f3gc.onrender.com/api`
+
+**Steps to Deploy:**
+1. Push to `main` branch on GitHub
+2. Netlify automatically triggers build and deployment
+3. View at: https://animay-tastetrail.netlify.app
+
+### Backend (Render)
+The Node.js backend is deployed on **Render** as a Web Service.
+
+**Deploy Config:**
+- Root directory: `server`
+- Build command: `npm install`
+- Start command: `node server.js`
+- Runtime: Node
+- Region: Singapore
+
+**Steps to Deploy:**
+1. Create Web Service on Render
+2. Connect GitHub repository
+3. Set environment variables (MONGO_URI, JWT_SECRET, etc.)
+4. Render auto-deploys on push to `main`
+5. View at: https://tastetrail-f3gc.onrender.com
+
+---
+
+## API Endpoints
+
+### Authentication
+- `POST /api/users/register` - Register new user
+- `POST /api/users/login` - User login
+- `GET /api/users/profile` - Get user profile
+- `PUT /api/users/profile` - Update profile
+
+### Recipes
+- `GET /api/recipes` - Get all recipes
+- `GET /api/recipes/:id` - Get recipe details
+- `POST /api/recipes` - Create recipe (admin)
+- `PUT /api/recipes/:id` - Update recipe (admin)
+- `DELETE /api/recipes/:id` - Delete recipe (admin)
+
+### Meal Plans
+- `GET /api/meal-plans` - Get user's meal plans
+- `POST /api/meal-plans` - Create meal plan
+- `GET /api/meal-plans/:id` - Get meal plan details
+- `PUT /api/meal-plans/:id` - Update meal plan
+- `DELETE /api/meal-plans/:id` - Delete meal plan
+
+### Shopping Lists
+- `GET /api/shopping-lists` - Get user's shopping lists
+- `POST /api/shopping-lists` - Create shopping list
+- `GET /api/shopping-lists/:id` - Get shopping list details
+- `PUT /api/shopping-lists/:id` - Update shopping list
+- `DELETE /api/shopping-lists/:id` - Delete shopping list
 
 ## Environment Variables
 
@@ -158,6 +218,12 @@ The app will open at `http://localhost:3000` (or next available port)
 ```
 MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/tastetrail
 JWT_SECRET=your-secret-key-change-in-production
+PORT=3000
+```
+
+### Frontend (.env)
+```
+REACT_APP_API_URL=https://tastetrail-f3gc.onrender.com/api
 ```
 
 ## Browser Support
