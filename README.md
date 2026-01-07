@@ -3,7 +3,7 @@
 A modern full-stack web application for recipe discovery, meal planning, and personalized dining experiences.
 
 **Live Demo:**
-- 🌐 **Frontend**: [animay-tastetrail.netlify.app](https://animay-tastetrail.netlify.app)
+- 🌐 **Frontend**: [animay-tastetrail.netlify.app](https://anirmay-tastetrail.netlify.app)
 - 🔌 **Backend API**: [tastetrail-f3gc.onrender.com](https://tastetrail-f3gc.onrender.com)
 
 ---
@@ -162,7 +162,7 @@ The React frontend is deployed on **Netlify** with automatic deployments from th
 **Steps to Deploy:**
 1. Push to `main` branch on GitHub
 2. Netlify automatically triggers build and deployment
-3. View at: https://animay-tastetrail.netlify.app
+3. View at: https://anirmay-tastetrail.netlify.app
 
 ### Backend (Render)
 The Node.js backend is deployed on **Render** as a Web Service.
